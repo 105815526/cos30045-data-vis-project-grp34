@@ -1,0 +1,156 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.hero-header {
+  background-color: #4caf50;
+  color: white;
+  text-align: center;
+  padding: 20px 20px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.hero-header h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  letter-spacing: 1px;
+}
+
+.hero-header p {
+  font-size: 1.2rem;
+  font-weight: 400;
+  opacity: 0.9;
+}
+
+body {
+  background-color: #fafafa;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.dashboard-container {
+  max-width: 1200px;
+  margin: 60px auto;
+  padding: 0 20px;
+}
+
+.story-section {
+  display: flex;
+  align-items: center;
+  gap: 60px;
+  margin-bottom: 80px;
+  padding-bottom: 40px;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.text-col {
+  flex: 1;
+}
+
+.text-col h2 {
+  font-size: 28px;
+  color: #1a1a1a;
+  margin-bottom: 20px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.text-col p {
+  font-size: 16px;
+  color: #666;
+  line-height: 1.8;
+  margin-bottom: 15px;
+}
+
+.text-col strong {
+  color: #1565c0;
+  font-weight: 600;
+}
+
+.chart-col {
+  flex: 1.5;
+  min-width: 0;
+}
+
+.centered-section .chart-col {
+  flex: 2.5;
+  width: 100%;
+}
+
+.chart-col svg {
+  width: 100%;
+  height: auto;
+}
+
+.story-section.reverse {
+  flex-direction: row-reverse;
+}
+
+.full-width-section {
+  flex-direction: column;
+  align-items: center;
+}
+.full-width-section .text-col.centered {
+  text-align: center;
+  max-width: 700px;
+  margin-bottom: 30px;
+}
+.full-width-section .wide-chart {
+  width: 100%;
+}
+
+.centered-section {
+  flex-direction: column;
+  align-items: center;
+  border-bottom: none;
+}
+.centered-section .text-col {
+  text-align: center;
+  max-width: 600px;
+  margin-bottom: 30px;
+}
+
+.centered-section {
+  gap: 0px;
+}
+
+.chart-col svg {
+  width: 100%;
+  height: auto;
+  max-height: 550px;
+  display: block;
+  margin: 0 auto;
+}
+
+#donut-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+#donut-container svg {
+  width: 100% !important;
+  max-width: 90% !important;
+  max-height: 600px !important;
+  display: block;
+  margin: 0 auto;
+}
+
+@media (max-width: 900px) {
+  .story-section {
+    flex-direction: column !important;
+    gap: 30px;
+    margin-bottom: 50px;
+  }
+}
+
+.page-footer {
+  text-align: center;
+  padding: 20px;
+  background-color: #4caf50;
+  font-size: 0.8rem;
+  color: white;
+  margin-top: auto;
+}
