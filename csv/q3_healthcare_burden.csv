@@ -1,0 +1,13 @@
+Road user,Sum(Hospitalisations),Sum(Bed days),Avg_Bed_Days_Per_Case
+Bus occupant,2584,13061,5.054566563
+Car driver,135063,615717,4.558739255
+Car passenger,53241,255987,4.808080239
+Car unknown position,8836,57072,6.459031236
+Heavy transport driver,4614,27056,5.863892501
+Heavy transport passenger,553,3154,5.703435805
+Heavy transport unknown position,444,2996,6.747747748
+Motorcyclist,92322,504102,5.46025866
+Other or unknown,6346,37610,5.926567917
+Pedal cyclist,75362,222501,2.952429606
+Pedestrian,28532,262180,9.188980793
+Pick-up truck or van occupant,2987,17455,5.843655842

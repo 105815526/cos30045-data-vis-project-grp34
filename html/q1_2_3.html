@@ -35,7 +35,6 @@
             flex-direction: column;
         }
 
-        /* Responsive Top Navigation Bar */
         .navbar {
             display: flex;
             justify-content: space-between;
@@ -116,7 +115,6 @@
             white-space: nowrap;
         }
 
-        /* Left-Top Dropdown Navigation Menu */
         .dropdown-menu {
             position: absolute;
             top: calc(100% + 12px);
@@ -178,7 +176,6 @@
             color: var(--text-muted);
         }
 
-        /* Main Container */
         .container {
             width: 100%;
             max-width: 1420px;
@@ -187,7 +184,6 @@
             flex: 1;
         }
 
-        /* Page Intro Header */
         .page-header {
             background-color: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -210,7 +206,6 @@
             max-width: 1100px;
         }
 
-        /* Chart Card Styling */
         .chart-card {
             background-color: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -255,7 +250,6 @@
             color: var(--text-muted);
         }
 
-        /* Controls & Buttons */
         .controls-group {
             display: flex;
             gap: 8px;
@@ -286,7 +280,6 @@
             border-color: var(--accent-blue);
         }
 
-        /* Split 2-Column Grid for Q2 & Q3 */
         .split-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -311,7 +304,6 @@
             overflow: visible;
         }
 
-        /* Axis & Grid Styling */
         .axis text {
             fill: #cbd5e1;
             font-size: 12px;
@@ -331,7 +323,6 @@
             stroke: none;
         }
 
-        /* Floating Tooltip */
         .d3-tooltip {
             position: fixed;
             pointer-events: none;
@@ -377,7 +368,6 @@
             font-size: 0.82rem;
         }
 
-        /* Legend Pills */
         .legend-bar {
             display: flex;
             gap: 20px;
@@ -412,7 +402,6 @@
 </head>
 <body>
 
-    <!-- Responsive Top Navigation Bar -->
     <nav class="navbar">
         <div class="nav-left">
             <button class="menu-toggle" id="menuBtn" aria-label="Toggle Navigation Menu">
@@ -420,14 +409,13 @@
                 <span class="brand-title">RoadCrashViz</span>
             </button>
 
-            <!-- Dropdown Menu for All Project Pages -->
             <div class="dropdown-menu" id="dropdownMenu">
                 <div class="dropdown-header">Choose a Section</div>
-                <a href="index.html" class="dropdown-link">
+                <a href="../index.html" class="dropdown-link">
                     <span class="dropdown-link-title">Dashboard Overview</span>
                     <span class="dropdown-link-sub">Project background, goals &amp; team</span>
                 </a>
-                <a href="Q1_2_3.html" class="dropdown-link active">
+                <a href="q1_2_3.html" class="dropdown-link active">
                     <span class="dropdown-link-title">National Trends &amp; Road Users</span>
                     <span class="dropdown-link-sub">Q1 yearly trends, Q2 road user changes &amp; Q3 bed days</span>
                 </a>
@@ -446,7 +434,6 @@
     </nav>
 
     <main class="container">
-        <!-- Page Intro Header -->
         <header class="page-header">
             <h1>National Trends, Road User Changes &amp; Hospital Bed Strain (2011–2021)</h1>
             <p>
@@ -454,7 +441,6 @@
             </p>
         </header>
 
-        <!-- Q1: FULL WIDTH ANNOTATED TIME-SERIES LINE CHART -->
         <section class="chart-card" id="q1-section">
             <div class="chart-header">
                 <div>
@@ -475,10 +461,7 @@
             </div>
         </section>
 
-        <!-- SPLIT 2-COLUMN LAYOUT FOR Q2 & Q3 -->
         <section class="split-grid">
-            
-            <!-- Q2: DIVERGING BAR CHART -->
             <div class="chart-card" id="q2-section">
                 <div class="chart-header">
                     <div>
@@ -499,7 +482,6 @@
                 </div>
             </div>
 
-            <!-- Q3: BUTTERFLY CHART -->
             <div class="chart-card" id="q3-section">
                 <div class="chart-header">
                     <div>
@@ -519,11 +501,9 @@
                     <div class="legend-item"><span class="legend-swatch" style="background:#8b5cf6;"></span> Right: Total Bed Days</div>
                 </div>
             </div>
-
         </section>
     </main>
 
-    <!-- Shared Floating Tooltip -->
     <div id="tooltip" class="d3-tooltip"></div>
 
     <footer>
@@ -531,7 +511,6 @@
     </footer>
 
     <script>
-        // Top-Left Navigation Dropdown Toggle
         const menuBtn = document.getElementById("menuBtn");
         const dropdownMenu = document.getElementById("dropdownMenu");
 
@@ -546,7 +525,6 @@
             }
         });
 
-        // Shared Formatting & Tooltip Helpers
         const tooltip = d3.select("#tooltip");
         const fmtInt = d3.format(",.0f");
         const fmtDec = d3.format(",.2f");
@@ -563,10 +541,8 @@
             tooltip.style("left", x + "px").style("top", y + "px");
         }
 
-        // =========================================================================
-        // Q1: ANNOTATED TIME-SERIES LINE CHART (q1_national_trend.csv)
-        // =========================================================================
-        d3.csv("q1_national_trend.csv").then(raw => {
+        // Q1: ANNOTATED TIME-SERIES LINE CHART (../csv/q1_national_trend.csv)
+        d3.csv("../csv/q1_national_trend.csv").then(raw => {
             const data = raw.map((d, i) => {
                 const year = +d["Calendar year"];
                 const cases = +d["Sum(Hospitalisations)"];
@@ -619,7 +595,6 @@
                 .attr("font-size", "12px")
                 .text("Non-Fatal Hospitalised Cases");
 
-            // Gradient Area under Line
             const defs = svg.append("defs");
             const grad = defs.append("linearGradient")
                 .attr("id", "q1-area-grad")
@@ -651,7 +626,6 @@
                 .attr("stroke-width", 3.5)
                 .attr("d", lineGen);
 
-            // Annotations Layer (Victoria 2012, NSW 2017, COVID 2020)
             const annotGroup = svg.append("g").attr("class", "annotations-layer");
 
             const breaks = [
@@ -717,7 +691,6 @@
             }
             renderAnnotations();
 
-            // Hover Guideline
             const hoverLine = svg.append("line")
                 .attr("stroke", "#94a3b8")
                 .attr("stroke-width", 1.5)
@@ -725,7 +698,6 @@
                 .attr("y1", 0).attr("y2", height)
                 .style("opacity", 0);
 
-            // Data Points
             const dots = svg.selectAll(".q1-dot")
                 .data(data)
                 .enter()
@@ -766,7 +738,6 @@
                     tooltip.style("opacity", 0);
                 });
 
-            // Direct Value Labels
             const valueLabels = svg.selectAll(".q1-val-label")
                 .data(data)
                 .enter()
@@ -780,7 +751,6 @@
                 .attr("font-weight", "600")
                 .text(d => fmtInt(d.cases));
 
-            // Button Controls for Q1
             d3.select("#btn-show-breaks").on("click", function() {
                 showBreaks = !showBreaks;
                 d3.select(this)
@@ -805,10 +775,8 @@
             });
         });
 
-        // =========================================================================
-        // Q2: DIVERGING BAR CHART (q2_road_user_change.csv) - ISOLATED HOVER
-        // =========================================================================
-        d3.csv("q2_road_user_change.csv").then(raw => {
+        // Q2: DIVERGING BAR CHART (../csv/q2_road_user_change.csv)
+        d3.csv("../csv/q2_road_user_change.csv").then(raw => {
             const cols = raw.columns || Object.keys(raw[0] || {});
             const col2011 = cols.find(c => c.includes("2011")) || "2011+Sum(Hospitalisations)";
             const col2021 = cols.find(c => c.includes("2021")) || "2021+Sum(Hospitalisations)";
@@ -868,7 +836,6 @@
                     .style("fill", userStr => (!activeUser) ? "#cbd5e1" : (userStr === activeUser ? "#38bdf8" : "#64748b"));
             }
 
-            // Reset to default whenever cursor leaves the Q2 chart area
             d3.select("#q2-chart").on("mouseleave", () => {
                 setQ2Hover(null);
                 tooltip.style("opacity", 0);
@@ -985,10 +952,8 @@
             });
         });
 
-        // =========================================================================
-        // Q3: BUTTERFLY CHART (q3_healthcare_burden.csv) - ISOLATED BAR HOVER
-        // =========================================================================
-        d3.csv("q3_healthcare_burden.csv").then(raw => {
+        // Q3: BUTTERFLY CHART (../csv/q3_healthcare_burden.csv)
+        d3.csv("../csv/q3_healthcare_burden.csv").then(raw => {
             let data = raw.filter(d => d["Road user"] && d["Road user"].trim() !== "").map(d => ({
                 user: d["Road user"].trim(),
                 cases: +d["Sum(Hospitalisations)"] || 0,
@@ -1015,7 +980,6 @@
                 .append("g")
                 .attr("transform", `translate(${margin.left},${margin.top})`);
 
-            // Independent Scales for Left (Hospitalisations) & Right (Bed Days)
             const xLeft = d3.scaleLinear()
                 .domain([0, d3.max(data, d => d.cases) * 1.15])
                 .range([leftWingEnd, 0]);
@@ -1087,7 +1051,6 @@
                     .style("fill", d => !activeUser ? "#cbd5e1" : (d.user === activeUser ? "#38bdf8" : "#64748b"));
             }
 
-            // Reset to default whenever cursor leaves the Q3 chart area
             d3.select("#q3-chart").on("mouseleave", () => {
                 setQ3Hover(null);
                 tooltip.style("opacity", 0);
@@ -1125,7 +1088,6 @@
                     .attr("class", "butterfly-row")
                     .attr("transform", d => `translate(0,${y(d.user)})`);
 
-                // Hover triggers ONLY on the Left Bar and Right Bar (not empty gap)
                 rowsEnter.append("rect")
                     .attr("class", "bar-left")
                     .attr("x", leftWingEnd)

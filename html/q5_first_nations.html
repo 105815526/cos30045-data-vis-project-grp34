@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>First Nations Clinical Severity | Road Crash Hospitalisations</title>
-    <!-- Load D3.js v7 -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
         :root {
@@ -34,7 +33,6 @@
             flex-direction: column;
         }
 
-        /* Responsive Top Navigation Bar */
         .navbar {
             display: flex;
             justify-content: space-between;
@@ -115,7 +113,6 @@
             white-space: nowrap;
         }
 
-        /* Left-Top Dropdown Navigation Menu */
         .dropdown-menu {
             position: absolute;
             top: calc(100% + 12px);
@@ -177,7 +174,6 @@
             color: var(--text-muted);
         }
 
-        /* Main Container */
         .container {
             width: 100%;
             max-width: 1420px;
@@ -186,7 +182,6 @@
             flex: 1;
         }
 
-        /* Page Intro Header */
         .page-header {
             background-color: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -209,7 +204,6 @@
             max-width: 1100px;
         }
 
-        /* Chart Card Container */
         .chart-card {
             background-color: var(--bg-card);
             border-radius: 14px;
@@ -254,7 +248,6 @@
             color: var(--text-muted);
         }
 
-        /* Controls */
         .controls-group {
             display: flex;
             gap: 8px;
@@ -300,7 +293,6 @@
             overflow: visible;
         }
 
-        /* Error / Status Notice */
         .status-box {
             display: none;
             background: rgba(239, 68, 68, 0.12);
@@ -314,7 +306,6 @@
             max-width: 720px;
         }
 
-        /* Heatmap Axes & Cell Styling */
         .x-axis text,
         .y-axis text,
         .legend-label {
@@ -358,7 +349,6 @@
             transition: opacity 0.15s ease;
         }
 
-        /* Floating Tooltip */
         .q5-tooltip {
             position: fixed;
             pointer-events: none;
@@ -396,7 +386,6 @@
             color: #ffffff;
         }
 
-        /* Legend Bar */
         .legend-bar {
             display: flex;
             gap: 20px;
@@ -432,7 +421,6 @@
 </head>
 <body>
 
-    <!-- Responsive Top Navigation Bar -->
     <nav class="navbar">
         <div class="nav-left">
             <button class="menu-toggle" id="menuBtn" aria-label="Toggle Navigation Menu">
@@ -442,11 +430,11 @@
 
             <div class="dropdown-menu" id="dropdownMenu">
                 <div class="dropdown-header">Choose a Section</div>
-                <a href="index.html" class="dropdown-link">
+                <a href="../index.html" class="dropdown-link">
                     <span class="dropdown-link-title">Dashboard Overview</span>
                     <span class="dropdown-link-sub">Project background, goals &amp; team</span>
                 </a>
-                <a href="Q1_2_3.html" class="dropdown-link">
+                <a href="q1_2_3.html" class="dropdown-link">
                     <span class="dropdown-link-title">National Trends &amp; Road Users</span>
                     <span class="dropdown-link-sub">Q1 yearly trends, Q2 road user changes &amp; Q3 bed days</span>
                 </a>
@@ -465,15 +453,13 @@
     </nav>
 
     <main class="container">
-        <!-- Page Intro Header -->
         <header class="page-header">
             <h1>Hospital Stay Lengths for First Nations Road Crash Patients (2011–2021)</h1>
             <p>
-                Visualise how long First Nations road crash patients stay in the hospital across different age groups and years. Darker red tiles show longer average hospital stays, while grey tiles mark years where data was not provided. Hover over any tile to see the exact numbers.
+                Visualise how long First Nations road crash patients stay in the hospital across different age groups and years. Darker red tiles show longer average hospital stays, while grey tiles mark years where data was not provided. Hover over any tile to view the exact numbers.
             </p>
         </header>
 
-        <!-- Q5 Heatmap Card -->
         <section class="chart-card">
             <div class="chart-header">
                 <div>
@@ -494,12 +480,10 @@
             <div class="legend-bar">
                 <div class="legend-item"><span class="legend-swatch" style="background:#ffffcc;"></span> Shorter Average Stay</div>
                 <div class="legend-item"><span class="legend-swatch" style="background:#bd0026;"></span> Longer Average Stay (Higher Severity)</div>
-                <div class="legend-item"><span class="legend-swatch" style="background:#334155;"></span> Data Not Provided</div>
             </div>
         </section>
     </main>
 
-    <!-- Floating Tooltip -->
     <div id="tooltip" class="q5-tooltip"></div>
 
     <footer>
@@ -507,7 +491,6 @@
     </footer>
 
     <script>
-        // Top-Left Navigation Dropdown Toggle
         const menuBtn = document.getElementById("menuBtn");
         const dropdownMenu = document.getElementById("dropdownMenu");
 
@@ -522,7 +505,7 @@
             }
         });
 
-        // Q5 Heatmap with Spotlight Hover Effect
+        // Q5 Heatmap (../csv/q5_first_nations_stay.csv)
         (function () {
             const statusBox = document.getElementById("q5-status");
             const tooltip = d3.select("#tooltip");
@@ -537,24 +520,7 @@
                 tooltip.style("left", x + "px").style("top", y + "px");
             }
 
-            const candidatePaths = [
-                "data/q5_first_nations_stay.csv",
-                "q5_first_nations_stay.csv",
-            ];
-
-            async function loadFirstWorkingCsv(paths) {
-                for (const path of paths) {
-                    try {
-                        const rows = await d3.csv(encodeURI(path));
-                        if (rows && rows.length > 0) return rows;
-                    } catch (err) {
-                        // Try next candidate path
-                    }
-                }
-                throw new Error("Could not find Q5 CSV file in data/ or root folder.");
-            }
-
-            loadFirstWorkingCsv(candidatePaths).then(function (rawData) {
+            d3.csv("../csv/q5_first_nations_stay.csv").then(function (rawData) {
                 const data = rawData.map(row => {
                     const cleanRow = {};
                     Object.keys(row).forEach(k => {
@@ -573,12 +539,6 @@
                         Avg_Bed_Days: isNaN(stayNum) ? null : stayNum
                     };
                 }).filter(d => !isNaN(d.Year) && d.Age_Group !== "");
-
-                if (data.length === 0) {
-                    statusBox.style.display = "block";
-                    statusBox.innerHTML = "<strong>CSV Loaded, but columns didn't match:</strong> Check that the CSV has <code>Year</code>, <code>Age_Group</code>, and <code>Avg_Bed_Days</code> columns.";
-                    return;
-                }
 
                 const width = 920;
                 const height = 460;
@@ -627,7 +587,6 @@
                     .domain([minVal, maxVal])
                     .interpolator(d3.interpolateYlOrRd);
 
-                // X Axis
                 const xAxisG = g.append("g")
                     .attr("class", "x-axis")
                     .attr("transform", `translate(0, ${innerHeight})`)
@@ -640,7 +599,6 @@
                     .attr("text-anchor", "middle")
                     .text("Calendar Year");
 
-                // Y Axis
                 const yAxisG = g.append("g")
                     .attr("class", "y-axis")
                     .call(d3.axisLeft(yScale));
@@ -656,7 +614,6 @@
                 let showValues = true;
                 const midPoint = minVal + (maxVal - minVal) * 0.52;
 
-                // Helper to apply/reset visual hover state cleanly
                 function setHeatmapHover(hoveredData) {
                     cells
                         .classed("hovered", d => hoveredData && d.Year === hoveredData.Year && d.Age_Group === hoveredData.Age_Group)
@@ -679,13 +636,11 @@
                         .style("font-weight", ag => (hoveredData && ag === hoveredData.Age_Group) ? "800" : "500");
                 }
 
-                // Ensure hover resets completely when cursor leaves the heatmap SVG
                 svg.on("mouseleave", function () {
                     setHeatmapHover(null);
                     tooltip.style("opacity", 0);
                 });
 
-                // Heatmap Cells
                 const cells = g.selectAll(".cell")
                     .data(data)
                     .enter()
@@ -699,13 +654,11 @@
                     .attr("rx", 4)
                     .attr("ry", 4)
                     .on("mouseenter", function (event, d) {
-                        // Bring hovered tile and its label above neighboring borders
                         d3.select(this).raise();
                         cellLabels.filter(lbl => lbl.Year === d.Year && lbl.Age_Group === d.Age_Group).raise();
 
                         setHeatmapHover(d);
 
-                        // Match tooltip value color dynamically to the hovered cell color (brightened slightly if very dark red)
                         let cellColor = "#94a3b8";
                         if (d.Avg_Bed_Days !== null) {
                             const c = d3.hsl(colorScale(d.Avg_Bed_Days));
@@ -713,9 +666,7 @@
                             cellColor = c.formatHex();
                         }
 
-                        const stayText = d.Avg_Bed_Days === null
-                            ? `<span style="color:#94a3b8; font-weight:700;">Data Not Provided</span>`
-                            : `<span class="tt-val" style="color:${cellColor};">${d.Avg_Bed_Days.toFixed(2)} days</span>`;
+                        const stayText = `<span class="tt-val" style="color:${cellColor};">${d.Avg_Bed_Days.toFixed(2)} days</span>`;
 
                         tooltip.style("opacity", 1).html(`
                             <div class="tt-title">Year ${d.Year} • ${d.Age_Group}</div>
@@ -730,7 +681,6 @@
                         tooltip.style("opacity", 0);
                     });
 
-                // Value Labels inside cells
                 const cellLabels = g.selectAll(".cell-val-text")
                     .data(data)
                     .enter()
@@ -752,7 +702,6 @@
                     cellLabels.style("opacity", showValues ? 1 : 0);
                 });
 
-                // Color Scale Legend
                 const legendWidth = 18;
                 const legendHeight = 210;
                 const legendX = innerWidth + 32;
@@ -801,7 +750,7 @@
 
             }).catch(function (error) {
                 statusBox.style.display = "block";
-                statusBox.innerHTML = `<strong>CSV File Not Found Locally:</strong> Open <strong>GitHub Desktop</strong> and click <strong>Pull origin</strong> so <code>data/q5_first_nations_stay.csv</code> downloads into your project folder, then refresh this page.`;
+                statusBox.innerHTML = `<strong>CSV File Not Found:</strong> Make sure <code>q5_first_nations_stay.csv</code> is inside the <code>csv</code> folder, then refresh this page.`;
                 console.error(error);
             });
         })();

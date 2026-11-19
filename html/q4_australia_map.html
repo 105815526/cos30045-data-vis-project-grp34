@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>State &amp; Territory Distribution | Road Crash Hospitalisations</title>
-    <!-- Load D3.js v7 -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
         :root {
@@ -34,7 +33,6 @@
             flex-direction: column;
         }
 
-        /* Responsive Top Navigation Bar */
         .navbar {
             display: flex;
             justify-content: space-between;
@@ -115,7 +113,6 @@
             white-space: nowrap;
         }
 
-        /* Left-Top Dropdown Navigation Menu */
         .dropdown-menu {
             position: absolute;
             top: calc(100% + 12px);
@@ -177,7 +174,6 @@
             color: var(--text-muted);
         }
 
-        /* Main Container */
         .container {
             width: 100%;
             max-width: 1420px;
@@ -186,7 +182,6 @@
             flex: 1;
         }
 
-        /* Page Intro Header */
         .page-header {
             background-color: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -209,7 +204,6 @@
             max-width: 1100px;
         }
 
-        /* Chart Card Container */
         .chart-card {
             position: relative;
             background-color: var(--bg-card);
@@ -271,7 +265,6 @@
             overflow: visible;
         }
 
-        /* State polygon styling */
         .state-path {
             stroke: #0f172a;
             stroke-width: 1.2px;
@@ -286,7 +279,6 @@
             filter: brightness(1.08);
         }
 
-        /* State text labels directly on the map */
         .state-label {
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             font-size: 15px;
@@ -306,7 +298,6 @@
             font-weight: 700;
         }
 
-        /* Legend Axis Styling */
         .legend-axis text {
             fill: #cbd5e1;
             font-size: 12px;
@@ -316,7 +307,6 @@
             stroke: #64748b;
         }
 
-        /* Floating Pointer Tooltip */
         .q4-tooltip {
             position: fixed;
             pointer-events: none;
@@ -392,7 +382,6 @@
 </head>
 <body>
 
-    <!-- Responsive Top Navigation Bar -->
     <nav class="navbar">
         <div class="nav-left">
             <button class="menu-toggle" id="menuBtn" aria-label="Toggle Navigation Menu">
@@ -400,14 +389,13 @@
                 <span class="brand-title">RoadCrashViz</span>
             </button>
 
-            <!-- Dropdown Menu for All Project Pages -->
             <div class="dropdown-menu" id="dropdownMenu">
                 <div class="dropdown-header">Choose a Section</div>
-                <a href="index.html" class="dropdown-link">
+                <a href="../index.html" class="dropdown-link">
                     <span class="dropdown-link-title">Dashboard Overview</span>
                     <span class="dropdown-link-sub">Project background, goals &amp; team</span>
                 </a>
-                <a href="Q1_2_3.html" class="dropdown-link">
+                <a href="q1_2_3.html" class="dropdown-link">
                     <span class="dropdown-link-title">National Trends &amp; Road Users</span>
                     <span class="dropdown-link-sub">Q1 yearly trends, Q2 road user changes &amp; Q3 bed days</span>
                 </a>
@@ -426,7 +414,6 @@
     </nav>
 
     <main class="container">
-        <!-- Page Intro Header -->
         <header class="page-header">
             <h1>Hospitalisations &amp; Bed Days by State and Territory</h1>
             <p>
@@ -434,22 +421,19 @@
             </p>
         </header>
 
-        <!-- Q4 Map Card -->
         <section class="chart-card">
             <div class="chart-header">
                 <div>
                     <span class="q-badge">Question 4 • State &amp; Territory Breakdown</span>
                     <h2 class="chart-title">Australia — Road Injury Hospitalisations &amp; Bed Days by State</h2>
-                    <p class="chart-subtitle">Hover over any state or territory to see case counts, national share, and average hospital stay</p>
+                    <p class="chart-subtitle">Hover over any state or territory to view case counts, national share, and average hospital stay</p>
                 </div>
             </div>
 
-            <!-- Map SVG Container -->
             <div id="q4-map-container"></div>
         </section>
     </main>
 
-    <!-- Tooltip Element -->
     <div id="q4-tooltip" class="q4-tooltip"></div>
 
     <footer>
@@ -457,7 +441,6 @@
     </footer>
 
     <script>
-        // Top-Left Navigation Dropdown Toggle
         const menuBtn = document.getElementById("menuBtn");
         const dropdownMenu = document.getElementById("dropdownMenu");
 
@@ -472,7 +455,7 @@
             }
         });
 
-        // Q4 Map Implementation (Centered Landmass Projection)
+        // Q4 Map Implementation (../csv/q4_state_distribution.csv)
         (function () {
             const width = 1120;
             const height = 740;
@@ -538,7 +521,6 @@
 
             const geoJsonUrl = "https://raw.githubusercontent.com/rowanhogan/australian-states/master/states.geojson";
 
-            // Extract the primary landmass ring of each state so distant offshore islands do not skew centering
             function getMainLandmassGeo(geoData) {
                 const mainFeatures = geoData.features.map(f => {
                     const geom = f.geometry;
@@ -566,7 +548,7 @@
 
             Promise.all([
                 d3.json(geoJsonUrl),
-                d3.csv("q4_state_distribution.csv").catch(() => fallbackCsvData)
+                d3.csv("../csv/q4_state_distribution.csv").catch(() => fallbackCsvData)
             ]).then(([geoData, rawCsv]) => {
                 const csvRows = (rawCsv && rawCsv.length > 0) ? rawCsv : fallbackCsvData;
 
@@ -595,7 +577,6 @@
                     .domain([0, maxHosp * 1.05])
                     .interpolator(d3.interpolateYlGnBu);
 
-                // Fit projection using the primary landmass so Australia is dead-center inside the card
                 const mainLandGeo = getMainLandmassGeo(geoData);
                 const projection = d3.geoMercator()
                     .fitExtent([[110, 20], [width - 110, height - 35]], mainLandGeo);
