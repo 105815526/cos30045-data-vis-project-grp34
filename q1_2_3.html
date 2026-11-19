@@ -187,7 +187,7 @@
             flex: 1;
         }
 
-        /* Page Intro Header (Clean Full-Width Narrative) */
+        /* Page Intro Header */
         .page-header {
             background-color: var(--bg-card);
             border: 1px solid var(--border-color);
@@ -422,22 +422,22 @@
 
             <!-- Dropdown Menu for All Project Pages -->
             <div class="dropdown-menu" id="dropdownMenu">
-                <div class="dropdown-header">Select Visualisation Topic</div>
+                <div class="dropdown-header">Choose a Section</div>
                 <a href="index.html" class="dropdown-link">
                     <span class="dropdown-link-title">Dashboard Overview</span>
-                    <span class="dropdown-link-sub">Project Scope, Motivation & Team</span>
+                    <span class="dropdown-link-sub">Project background, goals &amp; team</span>
                 </a>
                 <a href="Q1_2_3.html" class="dropdown-link active">
-                    <span class="dropdown-link-title">National Trends & Road Users</span>
-                    <span class="dropdown-link-sub">Q1 Trajectory, Q2 Net Shift & Q3 Bed Burden</span>
+                    <span class="dropdown-link-title">National Trends &amp; Road Users</span>
+                    <span class="dropdown-link-sub">Q1 yearly trends, Q2 road user changes &amp; Q3 bed days</span>
                 </a>
                 <a href="q4_australia_map.html" class="dropdown-link">
-                    <span class="dropdown-link-title">State & Territory Distribution</span>
-                    <span class="dropdown-link-sub">Q4 Jurisdictional Geographic Map (2021)</span>
+                    <span class="dropdown-link-title">State &amp; Territory Distribution</span>
+                    <span class="dropdown-link-sub">Q4 state-by-state map across Australia</span>
                 </a>
                 <a href="q5_first_nations.html" class="dropdown-link">
                     <span class="dropdown-link-title">First Nations Clinical Severity</span>
-                    <span class="dropdown-link-sub">Q5 Inpatient Stay Duration Distribution</span>
+                    <span class="dropdown-link-sub">Q5 hospital stay lengths for First Nations patients</span>
                 </a>
             </div>
         </div>
@@ -448,9 +448,9 @@
     <main class="container">
         <!-- Page Intro Header -->
         <header class="page-header">
-            <h1>National Trends, Road User Shifts & Healthcare Burden (2011–2021)</h1>
+            <h1>National Trends, Road User Changes &amp; Hospital Bed Strain (2011–2021)</h1>
             <p>
-                Tracing a decade of non-fatal traffic injury admissions across Australia. Use the interactive controls to inspect policy reporting discontinuities in <strong>Victoria (2012)</strong> and <strong>NSW (2017)</strong>, toggle between absolute count and relative percentage shifts, and hover over any road user group to inspect cumulative hospitalisations and inpatient bed days.
+                Follow ten years of non-fatal road injury hospital admissions across Australia. Use the buttons below to view reporting changes in <strong>Victoria (2012)</strong> and <strong>NSW (2017)</strong>, switch between actual case numbers and percentage changes, and hover over any road user group to compare their total admissions and hospital bed days.
             </p>
         </header>
 
@@ -458,20 +458,20 @@
         <section class="chart-card" id="q1-section">
             <div class="chart-header">
                 <div>
-                    <span class="q-badge">Research Question 1 • Temporal Trajectory & Policy Discontinuities</span>
+                    <span class="q-badge">Question 1 • Yearly Trend &amp; Reporting Changes</span>
                     <h2 class="chart-title">National Non-Fatal Hospitalised Road Injuries (2011–2021)</h2>
-                    <p class="chart-subtitle">Annual hospitalised case counts with structural reporting breaks in Victoria (2012) and New South Wales (2017)</p>
+                    <p class="chart-subtitle">Yearly hospitalised cases with reporting rule changes in Victoria (2012) and New South Wales (2017)</p>
                 </div>
                 <div class="controls-group">
-                    <button class="ctrl-btn active" id="btn-show-breaks">Annotations: ON</button>
-                    <button class="ctrl-btn" id="btn-y-scale">Y-Axis: Focused (28k–42k)</button>
+                    <button class="ctrl-btn active" id="btn-show-breaks">Notes: ON</button>
+                    <button class="ctrl-btn" id="btn-y-scale">Y-Axis: Zoomed (28k–42k)</button>
                 </div>
             </div>
             <div id="q1-chart" class="svg-container"></div>
             <div class="legend-bar">
-                <div class="legend-item"><span class="legend-swatch" style="background:#38bdf8;"></span> Annual Non-Fatal Hospitalisations</div>
-                <div class="legend-item"><span class="legend-swatch" style="background:#ef4444;"></span> Structural Reporting Break (VIC 2012 / NSW 2017)</div>
-                <div class="legend-item"><span class="legend-swatch" style="background:#f59e0b;"></span> COVID-19 Mobility Restriction Period (2020)</div>
+                <div class="legend-item"><span class="legend-swatch" style="background:#38bdf8;"></span> Yearly Non-Fatal Hospitalisations</div>
+                <div class="legend-item"><span class="legend-swatch" style="background:#ef4444;"></span> Reporting Rule Change (VIC 2012 / NSW 2017)</div>
+                <div class="legend-item"><span class="legend-swatch" style="background:#f59e0b;"></span> COVID-19 Travel Restrictions (2020)</div>
             </div>
         </section>
 
@@ -482,13 +482,13 @@
             <div class="chart-card" id="q2-section">
                 <div class="chart-header">
                     <div>
-                        <span class="q-badge">Research Question 2 • Net vs. Relative Shift</span>
-                        <h2 class="chart-title">Road User Contribution (2011 vs. 2021)</h2>
-                        <p class="chart-subtitle">Comparing net admission volume change against relative percentage change</p>
+                        <span class="q-badge">Question 2 • Actual vs. Percentage Change</span>
+                        <h2 class="chart-title">Changes by Road User (2011 vs. 2021)</h2>
+                        <p class="chart-subtitle">Comparing actual case differences against percentage changes</p>
                     </div>
                     <div class="controls-group">
-                        <button class="ctrl-btn active" id="btn-q2-abs">Net Change (Cases)</button>
-                        <button class="ctrl-btn" id="btn-q2-pct">% Shift</button>
+                        <button class="ctrl-btn active" id="btn-q2-abs">Case Change</button>
+                        <button class="ctrl-btn" id="btn-q2-pct">% Change</button>
                         <button class="ctrl-btn" id="btn-q2-sort">Sort: By Value</button>
                     </div>
                 </div>
@@ -503,9 +503,9 @@
             <div class="chart-card" id="q3-section">
                 <div class="chart-header">
                     <div>
-                        <span class="q-badge">Research Question 3 • Healthcare Resource Burden</span>
-                        <h2 class="chart-title">Hospitalisations vs. Total Bed Days (2011–2021)</h2>
-                        <p class="chart-subtitle">Butterfly comparison of cumulative cases (left) and inpatient bed days (right)</p>
+                        <span class="q-badge">Question 3 • Hospital Bed Strain</span>
+                        <h2 class="chart-title">Total Hospitalisations vs. Bed Days (2011–2021)</h2>
+                        <p class="chart-subtitle">Side-by-side comparison of total cases (left) and hospital bed days (right)</p>
                     </div>
                     <div class="controls-group">
                         <button class="ctrl-btn active" id="btn-q3-cases">Sort: Cases</button>
@@ -515,8 +515,8 @@
                 </div>
                 <div id="q3-chart" class="svg-container"></div>
                 <div class="legend-bar">
-                    <div class="legend-item"><span class="legend-swatch" style="background:#06b6d4;"></span> Left Wing: Sum(Hospitalisations)</div>
-                    <div class="legend-item"><span class="legend-swatch" style="background:#8b5cf6;"></span> Right Wing: Sum(Bed Days)</div>
+                    <div class="legend-item"><span class="legend-swatch" style="background:#06b6d4;"></span> Left: Total Hospitalisations</div>
+                    <div class="legend-item"><span class="legend-swatch" style="background:#8b5cf6;"></span> Right: Total Bed Days</div>
                 </div>
             </div>
 
@@ -678,22 +678,22 @@
             const breaks = [
                 {
                     year: 2012,
-                    label: "2012: Victoria Reporting Break",
-                    sub: "VIC hospital admission policy changed",
+                    label: "2012: Victoria Reporting Change",
+                    sub: "VIC changed hospital admission rules",
                     color: "#ef4444",
                     yOffset: 16
                 },
                 {
                     year: 2017,
-                    label: "2017: NSW Reporting Break",
-                    sub: "NSW methodology transition affected series",
+                    label: "2017: NSW Reporting Change",
+                    sub: "NSW updated how cases were counted",
                     color: "#ef4444",
                     yOffset: 16
                 },
                 {
                     year: 2020,
                     label: "2020: COVID-19 Lockdowns",
-                    sub: "Temporary dip during travel restrictions",
+                    sub: "Short drop during travel restrictions",
                     color: "#f59e0b",
                     yOffset: 54
                 }
@@ -717,7 +717,7 @@
 
                     pill.append("rect")
                         .attr("x", -4).attr("y", -14)
-                        .attr("width", 215).attr("height", 36)
+                        .attr("width", 220).attr("height", 36)
                         .attr("rx", 6)
                         .attr("fill", "rgba(15, 23, 42, 0.88)")
                         .attr("stroke", b.color)
@@ -764,16 +764,16 @@
                     hoverLine.attr("x1", x(d.year)).attr("x2", x(d.year)).style("opacity", 1);
 
                     let breakNote = "";
-                    if (d.year === 2012) breakNote = `<div class="tt-note">⚠️ <strong>Victoria Break (2012):</strong> Admission criteria changed in Victoria, creating a structural break in the national series.</div>`;
-                    if (d.year === 2017) breakNote = `<div class="tt-note">⚠️ <strong>NSW Break (2017):</strong> Reporting transition in New South Wales; avoid direct unadjusted comparison prior to 2017.</div>`;
-                    if (d.year === 2020) breakNote = `<div class="tt-note" style="color:#fcd34d;">ℹ️ <strong>2020 Context:</strong> Mobility restrictions coincided with reduced traffic volume.</div>`;
+                    if (d.year === 2012) breakNote = `<div class="tt-note">⚠️ <strong>Victoria Change (2012):</strong> Victoria changed its hospital admission rules, causing a shift in the national numbers.</div>`;
+                    if (d.year === 2017) breakNote = `<div class="tt-note">⚠️ <strong>NSW Change (2017):</strong> New South Wales updated how injuries were recorded, affecting comparisons with earlier years.</div>`;
+                    if (d.year === 2020) breakNote = `<div class="tt-note" style="color:#fcd34d;">ℹ️ <strong>2020 Context:</strong> Fewer cars were on the road during COVID-19 travel restrictions.</div>`;
 
                     const yoyHtml = d.yoyDiff !== null
-                        ? `<div class="tt-row"><span>YoY Change:</span><span class="tt-val" style="color:${d.yoyDiff >= 0 ? '#60a5fa' : '#fb923c'}">${fmtSignedInt(d.yoyDiff)} (${fmtSignedPct(d.yoyPct)}%)</span></div>`
-                        : `<div class="tt-row"><span>Baseline Year:</span><span class="tt-val">Start of Series</span></div>`;
+                        ? `<div class="tt-row"><span>Yearly Change:</span><span class="tt-val" style="color:${d.yoyDiff >= 0 ? '#60a5fa' : '#fb923c'}">${fmtSignedInt(d.yoyDiff)} (${fmtSignedPct(d.yoyPct)}%)</span></div>`
+                        : `<div class="tt-row"><span>Starting Year:</span><span class="tt-val">First Year in Data</span></div>`;
 
                     tooltip.style("opacity", 1).html(`
-                        <div class="tt-title">Calendar Year ${d.year}</div>
+                        <div class="tt-title">Year ${d.year}</div>
                         <div class="tt-row"><span>Hospitalisations:</span><span class="tt-val">${fmtInt(d.cases)} cases</span></div>
                         ${yoyHtml}
                         ${breakNote}
@@ -806,7 +806,7 @@
                 showBreaks = !showBreaks;
                 d3.select(this)
                     .classed("active", showBreaks)
-                    .text(showBreaks ? "Annotations: ON" : "Annotations: OFF");
+                    .text(showBreaks ? "Notes: ON" : "Notes: OFF");
                 renderAnnotations();
             });
 
@@ -814,7 +814,7 @@
                 focusedY = !focusedY;
                 d3.select(this)
                     .classed("active", !focusedY)
-                    .text(focusedY ? "Y-Axis: Focused (28k–42k)" : "Y-Axis: Zero Baseline (0–42k)");
+                    .text(focusedY ? "Y-Axis: Zoomed (28k–42k)" : "Y-Axis: Start at 0 (0–42k)");
 
                 y.domain([focusedY ? 28000 : 0, d3.max(data, d => d.cases) + 2500]);
                 yAxisGroup.transition().duration(600).call(d3.axisLeft(y).ticks(6).tickFormat(d => fmtInt(d)));
@@ -923,8 +923,8 @@
                             <div class="tt-title">${d.user}</div>
                             <div class="tt-row"><span>2011 Cases:</span><span class="tt-val">${fmtInt(d.y2011)}</span></div>
                             <div class="tt-row"><span>2021 Cases:</span><span class="tt-val">${fmtInt(d.y2021)}</span></div>
-                            <div class="tt-row"><span>Net Change:</span><span class="tt-val" style="color:${d.netChange >= 0 ? '#60a5fa' : '#fb923c'}">${fmtSignedInt(d.netChange)} cases</span></div>
-                            <div class="tt-row"><span>Relative Shift:</span><span class="tt-val" style="color:${d.pctShift >= 0 ? '#60a5fa' : '#fb923c'}">${fmtSignedPct(d.pctShift)}%</span></div>
+                            <div class="tt-row"><span>Case Difference:</span><span class="tt-val" style="color:${d.netChange >= 0 ? '#60a5fa' : '#fb923c'}">${fmtSignedInt(d.netChange)} cases</span></div>
+                            <div class="tt-row"><span>Percentage Change:</span><span class="tt-val" style="color:${d.pctShift >= 0 ? '#60a5fa' : '#fb923c'}">${fmtSignedPct(d.pctShift)}%</span></div>
                         `);
                         moveTooltip(event);
                     })
@@ -1035,7 +1035,7 @@
                 .attr("fill", "#06b6d4")
                 .attr("font-size", "12px")
                 .attr("font-weight", "700")
-                .text("← Sum(Hospitalisations)");
+                .text("← Total Hospitalisations");
 
             svg.append("text")
                 .attr("x", wingW + centerGap / 2)
@@ -1053,7 +1053,7 @@
                 .attr("fill", "#a78bfa")
                 .attr("font-size", "12px")
                 .attr("font-weight", "700")
-                .text("Sum(Bed Days) →");
+                .text("Total Bed Days →");
 
             svg.append("g")
                 .attr("class", "axis")
@@ -1098,7 +1098,7 @@
                             <div class="tt-title">${d.user} (2011–2021 Total)</div>
                             <div class="tt-row"><span>Total Hospitalisations:</span><span class="tt-val" style="color:#22d3ee">${fmtInt(d.cases)} cases</span></div>
                             <div class="tt-row"><span>Total Bed Days:</span><span class="tt-val" style="color:#c4b5fd">${fmtInt(d.beds)} days</span></div>
-                            <div class="tt-row"><span>Avg Stay / Case:</span><span class="tt-val">${fmtDec(d.avgStay)} days</span></div>
+                            <div class="tt-row"><span>Average Stay:</span><span class="tt-val">${fmtDec(d.avgStay)} days</span></div>
                         `);
                         moveTooltip(event);
                     })

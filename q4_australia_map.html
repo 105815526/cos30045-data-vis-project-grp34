@@ -1,487 +1,763 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Q4: Australian Road Injury Hospitalisations by State (D3.js)</title>
-  <!-- Load D3.js v7 -->
-  <script src="https://d3js.org/d3.v7.min.js"></script>
-  <style>
-    body {
-      font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: #f8fafc;
-      margin: 0;
-      padding: 24px;
-      color: #1e293b;
-    }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>State &amp; Territory Distribution | Road Crash Hospitalisations</title>
+    <!-- Load D3.js v7 -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        :root {
+            --bg-dark: #12161f;
+            --bg-card: #1b2230;
+            --bg-panel: #151b26;
+            --accent-blue: #3b82f6;
+            --accent-cyan: #06b6d4;
+            --accent-purple: #8b5cf6;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #2e3a4f;
+        }
 
-    /* Card Container matching your reference layout */
-    .q4-card {
-      position: relative;
-      max-width: 960px;
-      margin: 0 auto;
-      background: #ffffff;
-      border-radius: 18px;
-      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-      padding: 24px 28px;
-      border: 1px solid #e2e8f0;
-    }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
 
-    .q4-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 8px;
-    }
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
 
-    .q4-title {
-      font-size: 22px;
-      font-weight: 700;
-      color: #334155;
-      margin: 0;
-    }
+        /* Responsive Top Navigation Bar (Matches index.html & Q1_2_3.html) */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px 20px;
+            background-color: rgba(27, 34, 48, 0.96);
+            backdrop-filter: blur(10px);
+            padding: 14px clamp(16px, 4vw, 40px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 200;
+        }
 
-    .q4-subtitle {
-      font-size: 14px;
-      color: #64748b;
-      margin: 4px 0 0 0;
-    }
+        .nav-left {
+            position: relative;
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
 
-    #q4-map-container {
-      width: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      position: relative;
-    }
+        .menu-toggle {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            cursor: pointer;
+            padding: 4px 10px 4px 4px;
+            border-radius: 10px;
+            transition: background 0.2s ease;
+            white-space: nowrap;
+        }
 
-    svg#australia-map {
-      width: 100%;
-      height: auto;
-      max-height: 680px;
-      overflow: visible;
-    }
+        .menu-toggle:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
 
-    /* State polygon styling */
-    .state-path {
-      stroke: #334155;
-      stroke-width: 1px;
-      cursor: pointer;
-      transition: opacity 0.2s ease, stroke-width 0.2s ease, filter 0.2s ease;
-    }
+        .menu-icon {
+            background: var(--accent-blue);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+            transition: background 0.2s ease;
+        }
 
-    .state-path:hover,
-    .state-path.active-hover {
-      stroke: #0f172a;
-      stroke-width: 2.2px;
-      filter: brightness(1.06);
-    }
+        .menu-toggle:hover .menu-icon {
+            background: #2563eb;
+        }
 
-    /* State text labels directly on the map */
-    .state-label {
-      font-family: "Segoe UI", Roboto, sans-serif;
-      font-size: 13.5px;
-      font-weight: 600;
-      fill: #1e293b;
-      text-anchor: middle;
-      pointer-events: none;
-      paint-order: stroke;
-      stroke: rgba(255, 255, 255, 0.85);
-      stroke-width: 3px;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
+        .brand-title {
+            font-size: clamp(1.05rem, 2vw, 1.2rem);
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            color: var(--text-main);
+        }
 
-    .state-label.act-label {
-      font-size: 10px;
-      font-weight: 600;
-    }
+        .page-indicator {
+            font-size: clamp(0.8rem, 1.4vw, 0.95rem);
+            font-weight: 700;
+            color: var(--accent-cyan);
+            letter-spacing: 0.7px;
+            text-transform: uppercase;
+            background: rgba(6, 182, 212, 0.1);
+            border: 1px solid rgba(6, 182, 212, 0.28);
+            padding: 6px 14px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
 
-    /* Floating Pointer Tooltip */
-    .q4-tooltip {
-      position: fixed;
-      pointer-events: none;
-      background: rgba(15, 23, 42, 0.95);
-      color: #f8fafc;
-      padding: 12px 16px;
-      border-radius: 10px;
-      font-size: 13px;
-      line-height: 1.5;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      opacity: 0;
-      transform: translateY(4px);
-      transition: opacity 0.15s ease, transform 0.15s ease;
-      z-index: 9999;
-      min-width: 230px;
-    }
+        /* Left-Top Dropdown Navigation Menu */
+        .dropdown-menu {
+            position: absolute;
+            top: calc(100% + 12px);
+            left: 0;
+            width: min(320px, calc(100vw - 32px));
+            background-color: #1b2230;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55);
+            padding: 10px;
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+            z-index: 300;
+        }
 
-    .q4-tooltip.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
+        .dropdown-menu.open {
+            display: flex;
+        }
 
-    .q4-tooltip-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.18);
-      padding-bottom: 6px;
-      margin-bottom: 8px;
-      font-weight: 700;
-      font-size: 14.5px;
-      color: #ffffff;
-    }
+        .dropdown-header {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            padding: 8px 12px 4px;
+            font-weight: 700;
+        }
 
-    .q4-tooltip-badge {
-      background: rgba(255, 255, 255, 0.18);
-      padding: 2px 7px;
-      border-radius: 5px;
-      font-size: 11.5px;
-      font-weight: 600;
-    }
+        .dropdown-link {
+            display: flex;
+            flex-direction: column;
+            text-decoration: none;
+            padding: 10px 14px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
 
-    .q4-tooltip-row {
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      margin: 3px 0;
-    }
+        .dropdown-link:hover {
+            background-color: rgba(59, 130, 246, 0.12);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
 
-    .q4-tooltip-label {
-      color: #cbd5e1;
-    }
+        .dropdown-link.active {
+            background-color: rgba(59, 130, 246, 0.2);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
 
-    .q4-tooltip-value {
-      font-weight: 600;
-      color: #ffffff;
-    }
-  </style>
+        .dropdown-link-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 2px;
+        }
+
+        .dropdown-link-sub {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Main Container */
+        .container {
+            width: 100%;
+            max-width: 1420px;
+            margin: 0 auto;
+            padding: clamp(20px, 3vw, 32px) clamp(16px, 3vw, 32px);
+            flex: 1;
+        }
+
+        /* Page Intro Header */
+        .page-header {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: clamp(22px, 3vw, 30px) clamp(20px, 3vw, 32px);
+            margin-bottom: 28px;
+        }
+
+        .page-header h1 {
+            font-size: clamp(1.45rem, 2.8vw, 1.85rem);
+            margin-bottom: 10px;
+            color: var(--text-main);
+            line-height: 1.3;
+        }
+
+        .page-header p {
+            color: var(--text-muted);
+            line-height: 1.65;
+            font-size: 1rem;
+            max-width: 1100px;
+        }
+
+        /* Chart Card Container (Unified Dark Theme) */
+        .chart-card {
+            position: relative;
+            background-color: var(--bg-card);
+            border-radius: 14px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+            padding: clamp(18px, 3vw, 28px);
+            border: 1px solid var(--border-color);
+            margin-bottom: 28px;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 18px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .q-badge {
+            display: inline-block;
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+            font-size: 0.78rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        .chart-title {
+            font-size: clamp(1.1rem, 2vw, 1.3rem);
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 4px;
+        }
+
+        .chart-subtitle {
+            font-size: 0.92rem;
+            color: var(--text-muted);
+        }
+
+        #q4-map-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        svg#australia-map {
+            width: 100%;
+            height: auto;
+            max-height: 660px;
+            overflow: visible;
+        }
+
+        /* State polygon styling for dark mode */
+        .state-path {
+            stroke: #0f172a;
+            stroke-width: 1.2px;
+            cursor: pointer;
+            transition: opacity 0.2s ease, stroke-width 0.2s ease, filter 0.2s ease;
+        }
+
+        .state-path:hover,
+        .state-path.active-hover {
+            stroke: #38bdf8;
+            stroke-width: 2.5px;
+            filter: brightness(1.08);
+        }
+
+        /* State text labels directly on the map */
+        .state-label {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-size: 13.5px;
+            font-weight: 700;
+            fill: #f8fafc;
+            text-anchor: middle;
+            pointer-events: none;
+            paint-order: stroke;
+            stroke: rgba(15, 23, 42, 0.9);
+            stroke-width: 3.5px;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .state-label.act-label {
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        /* Legend Axis Styling */
+        .legend-axis text {
+            fill: #cbd5e1;
+            font-size: 11px;
+        }
+
+        .legend-axis line {
+            stroke: #64748b;
+        }
+
+        /* Floating Pointer Tooltip */
+        .q4-tooltip {
+            position: fixed;
+            pointer-events: none;
+            background: rgba(15, 23, 42, 0.96);
+            color: #f8fafc;
+            padding: 14px 16px;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            line-height: 1.55;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45);
+            border: 1px solid #475569;
+            opacity: 0;
+            transform: translateY(4px);
+            transition: opacity 0.15s ease, transform 0.15s ease;
+            z-index: 9999;
+            min-width: 245px;
+        }
+
+        .q4-tooltip.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .q4-tooltip-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 6px;
+            margin-bottom: 8px;
+            font-weight: 700;
+            font-size: 0.96rem;
+            color: #38bdf8;
+        }
+
+        .q4-tooltip-badge {
+            background: rgba(59, 130, 246, 0.22);
+            color: #93c5fd;
+            border: 1px solid rgba(59, 130, 246, 0.4);
+            padding: 2px 8px;
+            border-radius: 5px;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .q4-tooltip-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            margin: 3px 0;
+        }
+
+        .q4-tooltip-label {
+            color: #cbd5e1;
+        }
+
+        .q4-tooltip-value {
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        footer {
+            text-align: center;
+            padding: 24px 16px;
+            margin-top: 20px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            background-color: #0e121a;
+        }
+    </style>
 </head>
 <body>
 
-  <div class="q4-card">
-    <div class="q4-header">
-      <div>
-        <h2 class="q4-title">Australia — Road Injury Hospitalisations &amp; Bed Days by State</h2>
-        <p class="q4-subtitle">Hover over any state or territory to inspect hospitalisation counts, national share, and bed-day severity (2011–2021)</p>
-      </div>
-    </div>
+    <!-- Responsive Top Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <button class="menu-toggle" id="menuBtn" aria-label="Toggle Navigation Menu">
+                <span class="menu-icon">☰</span>
+                <span class="brand-title">RoadCrashViz</span>
+            </button>
 
-    <!-- Map SVG Container -->
-    <div id="q4-map-container"></div>
-  </div>
+            <!-- Dropdown Menu for All Project Pages -->
+            <div class="dropdown-menu" id="dropdownMenu">
+                <div class="dropdown-header">Choose a Section</div>
+                <a href="index.html" class="dropdown-link">
+                    <span class="dropdown-link-title">Dashboard Overview</span>
+                    <span class="dropdown-link-sub">Project background, goals &amp; team</span>
+                </a>
+                <a href="Q1_2_3.html" class="dropdown-link">
+                    <span class="dropdown-link-title">National Trends &amp; Road Users</span>
+                    <span class="dropdown-link-sub">Q1 yearly trends, Q2 road user changes &amp; Q3 bed days</span>
+                </a>
+                <a href="q4_australia_map.html" class="dropdown-link active">
+                    <span class="dropdown-link-title">State &amp; Territory Distribution</span>
+                    <span class="dropdown-link-sub">Q4 state-by-state map across Australia</span>
+                </a>
+                <a href="q5_first_nations.html" class="dropdown-link">
+                    <span class="dropdown-link-title">First Nations Clinical Severity</span>
+                    <span class="dropdown-link-sub">Q5 hospital stay lengths for First Nations patients</span>
+                </a>
+            </div>
+        </div>
 
-  <!-- Tooltip Element -->
-  <div id="q4-tooltip" class="q4-tooltip"></div>
+        <div class="page-indicator">State &amp; Territory Distribution</div>
+    </nav>
 
-  <script>
-    (function () {
-      const width = 880;
-      const height = 650;
+    <main class="container">
+        <!-- Page Intro Header -->
+        <header class="page-header">
+            <h1>Hospitalisations &amp; Bed Days by State and Territory</h1>
+            <p>
+                See how non-fatal road crash hospitalisations and hospital bed days are spread across Australian states and territories. Hover over any state or territory on the map to check exact case numbers, national share, state ranking, and average days spent in the hospital.
+            </p>
+        </header>
 
-      // Mapping between CSV State abbreviations (normalized uppercase) and GeoJSON Full State Names
-      const stateMeta = {
-        "WA":  { fullName: "Western Australia",            code: "WA",  color: "#5c9ce6", labelOffset: [0, 0] },
-        "NT":  { fullName: "Northern Territory",           code: "NT",  color: "#69c2b0", labelOffset: [0, -10] },
-        "QLD": { fullName: "Queensland",                   code: "Qld", color: "#8c82c9", labelOffset: [0, 10] },
-        "SA":  { fullName: "South Australia",              code: "SA",  color: "#d4b9ad", labelOffset: [0, -15] },
-        "NSW": { fullName: "New South Wales",              code: "NSW", color: "#7bc665", labelOffset: [-10, -5] },
-        "VIC": { fullName: "Victoria",                     code: "Vic", color: "#58b581", labelOffset: [-8, 12] },
-        "TAS": { fullName: "Tasmania",                     code: "Tas", color: "#e6a8d7", labelOffset: [0, 48] },
-        "ACT": { fullName: "Australian Capital Territory", code: "ACT", color: "#e11d48", labelOffset: [-22, -26] }
-      };
+        <!-- Q4 Map Card -->
+        <section class="chart-card">
+            <div class="chart-header">
+                <div>
+                    <span class="q-badge">Question 4 • State &amp; Territory Breakdown</span>
+                    <h2 class="chart-title">Australia — Road Injury Hospitalisations &amp; Bed Days by State</h2>
+                    <p class="chart-subtitle">Hover over any state or territory to see case counts, national share, and average hospital stay</p>
+                </div>
+            </div>
 
-      // Lookup from Full GeoJSON State Name -> Uppercase Code
-      const nameToCode = {};
-      Object.keys(stateMeta).forEach(code => {
-        nameToCode[stateMeta[code].fullName.toUpperCase()] = code;
-      });
+            <!-- Map SVG Container -->
+            <div id="q4-map-container"></div>
+        </section>
+    </main>
 
-      // Fallback dataset from q4_state_distribution.csv in case file:// protocol blocks local CSV fetch
-      const fallbackCsvData = [
-        { State: "ACT", Hospitalisations: 740,   Bed_Days: 2739 },
-        { State: "NSW", Hospitalisations: 9003,  Bed_Days: 55098 },
-        { State: "NT",  Hospitalisations: 710,   Bed_Days: 4073 },
-        { State: "Qld", Hospitalisations: 10447, Bed_Days: 40889 },
-        { State: "SA",  Hospitalisations: 2632,  Bed_Days: 11852 },
-        { State: "Tas", Hospitalisations: 805,   Bed_Days: 4860 },
-        { State: "Vic", Hospitalisations: 11130, Bed_Days: 54699 },
-        { State: "WA",  Hospitalisations: 3568,  Bed_Days: 22288 }
-      ];
+    <!-- Tooltip Element -->
+    <div id="q4-tooltip" class="q4-tooltip"></div>
 
-      // Create SVG canvas
-      const svg = d3.select("#q4-map-container")
-        .append("svg")
-        .attr("id", "australia-map")
-        .attr("viewBox", `0 0 ${width} ${height}`)
-        .attr("preserveAspectRatio", "xMidYMid meet");
+    <footer>
+        COS30045 Data Visualisation Project • Group 34 (Dylan Ting Shu Han, Stanley Sia Ming Qian, Lee Kok Kiong) • Data Source: BITRE (2023)
+    </footer>
 
-      // Add soft drop-shadow filter matching the reference Australia map
-      const defs = svg.append("defs");
-      const filter = defs.append("filter")
-        .attr("id", "continent-shadow")
-        .attr("x", "-15%")
-        .attr("y", "-15%")
-        .attr("width", "130%")
-        .attr("height", "130%");
+    <script>
+        // Top-Left Navigation Dropdown Toggle
+        const menuBtn = document.getElementById("menuBtn");
+        const dropdownMenu = document.getElementById("dropdownMenu");
 
-      filter.append("feDropShadow")
-        .attr("dx", "-10")
-        .attr("dy", "12")
-        .attr("stdDeviation", "10")
-        .attr("flood-color", "#0f172a")
-        .attr("flood-opacity", "0.38");
-
-      const mapGroup = svg.append("g").attr("class", "map-layers");
-      const polygonGroup = mapGroup.append("g")
-        .attr("class", "states-layer")
-        .attr("filter", "url(#continent-shadow)");
-      const labelGroup = mapGroup.append("g").attr("class", "labels-layer");
-      const legendGroup = svg.append("g").attr("class", "legend-layer");
-
-      const tooltip = d3.select("#q4-tooltip");
-      const formatComma = d3.format(",");
-      const formatDecimal = d3.format(".2f");
-
-      // GeoJSON source for Australian states & territories
-      const geoJsonUrl = "https://raw.githubusercontent.com/rowanhogan/australian-states/master/states.geojson";
-
-      // Load CSV and GeoJSON
-      Promise.all([
-        d3.json(geoJsonUrl),
-        d3.csv("q4_state_distribution.csv").catch(() => fallbackCsvData)
-      ]).then(([geoData, rawCsv]) => {
-        const csvRows = (rawCsv && rawCsv.length > 0) ? rawCsv : fallbackCsvData;
-
-        // Parse numeric values & compute totals and rankings
-        const parsedData = csvRows.map(d => ({
-          rawCode: String(d.State).trim(),
-          normCode: String(d.State).trim().toUpperCase(),
-          hospitalisations: +d.Hospitalisations,
-          bedDays: +d.Bed_Days
-        }));
-
-        const totalHospitalisations = d3.sum(parsedData, d => d.hospitalisations);
-        const totalBedDays = d3.sum(parsedData, d => d.bedDays);
-
-        // Sort descending by hospitalisations to assign rank (1 to 8)
-        parsedData.sort((a, b) => d3.descending(a.hospitalisations, b.hospitalisations));
-        parsedData.forEach((d, idx) => {
-          d.rank = idx + 1;
-          d.sharePct = (d.hospitalisations / totalHospitalisations) * 100;
-          d.bedDaySharePct = (d.bedDays / totalBedDays) * 100;
-          d.avgBedDays = d.bedDays / d.hospitalisations;
+        menuBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            dropdownMenu.classList.toggle("open");
         });
 
-        // Map by normalized uppercase code ("VIC", "NSW", etc.)
-        const dataByCode = new Map(parsedData.map(d => [d.normCode, d]));
-
-        //Choropleth sequential color scale (with ACT highlighted so it remains visible inside NSW)
-        const maxHosp = d3.max(parsedData, d => d.hospitalisations);
-        const choroplethScale = d3.scaleSequential()
-          .domain([0, maxHosp * 1.05])
-          .interpolator(d3.interpolateYlGnBu);
-
-        // Fit Mercator projection neatly inside the SVG area
-        const projection = d3.geoMercator()
-          .fitExtent([[50, 25], [width - 60, height - 65]], geoData);
-
-        const pathGenerator = d3.geoPath().projection(projection);
-
-        // Helper to resolve each GeoJSON feature to our normalized state code
-        function getFeatureCode(feature) {
-          const props = feature.properties || {};
-          const rawName = (props.STATE_NAME || props.name || props.STE_NAME16 || props.STE_NAME21 || "").trim().toUpperCase();
-          return nameToCode[rawName] || rawName;
-        }
-
-        // Sort features so ACT renders on top of NSW (preventing NSW from blocking ACT hover)
-        const sortedFeatures = [...geoData.features].sort((a, b) => {
-          const codeA = getFeatureCode(a);
-          const codeB = getFeatureCode(b);
-          if (codeA === "ACT") return 1;
-          if (codeB === "ACT") return -1;
-          return 0;
+        document.addEventListener("click", (e) => {
+            if (!dropdownMenu.contains(e.target) && !menuBtn.contains(e.target)) {
+                dropdownMenu.classList.remove("open");
+            }
         });
 
-        // Draw State Polygons
-        polygonGroup.selectAll("path.state-path")
-          .data(sortedFeatures)
-          .join("path")
-          .attr("class", "state-path")
-          .attr("id", d => `state-${getFeatureCode(d)}`)
-          .attr("d", pathGenerator)
-          .attr("fill", d => {
-            const code = getFeatureCode(d);
-            const stateRecord = dataByCode.get(code);
-            if (code === "ACT") return "#e11d48"; // Distinct accent like reference map so ACT stands out inside NSW
-            return stateRecord ? choroplethScale(stateRecord.hospitalisations) : "#cbd5e1";
-          })
-          .on("mouseover", function (event, d) {
-            d3.select(this).classed("active-hover", true);
-            showTooltip(event, d);
-          })
-          .on("mousemove", function (event) {
-            moveTooltip(event);
-          })
-          .on("mouseout", function () {
-            d3.select(this).classed("active-hover", false);
-            hideTooltip();
-          });
+        // Q4 Map Implementation
+        (function () {
+            const width = 880;
+            const height = 650;
 
-        // Draw State Labels (matching the reference Australia map placement)
-        sortedFeatures.forEach(feature => {
-          const code = getFeatureCode(feature);
-          const meta = stateMeta[code];
-          if (!meta) return;
+            const stateMeta = {
+                "WA":  { fullName: "Western Australia",            code: "WA",  color: "#5c9ce6", labelOffset: [0, 0] },
+                "NT":  { fullName: "Northern Territory",           code: "NT",  color: "#69c2b0", labelOffset: [0, -10] },
+                "QLD": { fullName: "Queensland",                   code: "Qld", color: "#8c82c9", labelOffset: [0, 10] },
+                "SA":  { fullName: "South Australia",              code: "SA",  color: "#d4b9ad", labelOffset: [0, -15] },
+                "NSW": { fullName: "New South Wales",              code: "NSW", color: "#7bc665", labelOffset: [-10, -5] },
+                "VIC": { fullName: "Victoria",                     code: "Vic", color: "#58b581", labelOffset: [-8, 12] },
+                "TAS": { fullName: "Tasmania",                     code: "Tas", color: "#e6a8d7", labelOffset: [0, 48] },
+                "ACT": { fullName: "Australian Capital Territory", code: "ACT", color: "#e11d48", labelOffset: [-22, -26] }
+            };
 
-          const centroid = pathGenerator.centroid(feature);
-          if (isNaN(centroid[0]) || isNaN(centroid[1])) return;
-
-          const [dx, dy] = meta.labelOffset;
-          const labelX = centroid[0] + dx;
-          const labelY = centroid[1] + dy;
-
-          if (code === "ACT") {
-            // Render multi-line small label for Australian Capital Territory just above the territory dot
-            const actText = labelGroup.append("text")
-              .attr("class", "state-label act-label")
-              .attr("x", labelX)
-              .attr("y", labelY - 14);
-
-            ["Australian", "Capital", "Territory"].forEach((word, i) => {
-              actText.append("tspan")
-                .attr("x", labelX)
-                .attr("dy", i === 0 ? 0 : "1.1em")
-                .text(word);
+            const nameToCode = {};
+            Object.keys(stateMeta).forEach(code => {
+                nameToCode[stateMeta[code].fullName.toUpperCase()] = code;
             });
-          } else {
-            labelGroup.append("text")
-              .attr("class", "state-label")
-              .attr("x", labelX)
-              .attr("y", labelY)
-              .text(meta.fullName);
-          }
-        });
 
-        // Add Choropleth Color Legend in Bottom-Left
-        drawColorLegend(legendGroup, choroplethScale, maxHosp);
+            const fallbackCsvData = [
+                { State: "ACT", Hospitalisations: 740,   Bed_Days: 2739 },
+                { State: "NSW", Hospitalisations: 9003,  Bed_Days: 55098 },
+                { State: "NT",  Hospitalisations: 710,   Bed_Days: 4073 },
+                { State: "Qld", Hospitalisations: 10447, Bed_Days: 40889 },
+                { State: "SA",  Hospitalisations: 2632,  Bed_Days: 11852 },
+                { State: "Tas", Hospitalisations: 805,   Bed_Days: 4860 },
+                { State: "Vic", Hospitalisations: 11130, Bed_Days: 54699 },
+                { State: "WA",  Hospitalisations: 3568,  Bed_Days: 22288 }
+            ];
 
-        // Tooltip Helper Functions
-        function showTooltip(event, feature) {
-          const code = getFeatureCode(feature);
-          const meta = stateMeta[code] || { fullName: code, code: code };
-          const stats = dataByCode.get(code);
+            const svg = d3.select("#q4-map-container")
+                .append("svg")
+                .attr("id", "australia-map")
+                .attr("viewBox", `0 0 ${width} ${height}`)
+                .attr("preserveAspectRatio", "xMidYMid meet");
 
-          if (!stats) return;
+            const defs = svg.append("defs");
+            const filter = defs.append("filter")
+                .attr("id", "continent-shadow")
+                .attr("x", "-15%")
+                .attr("y", "-15%")
+                .attr("width", "130%")
+                .attr("height", "130%");
 
-          tooltip.html(`
-            <div class="q4-tooltip-header">
-              <span>${meta.fullName} (${meta.code})</span>
-              <span class="q4-tooltip-badge">Rank #${stats.rank}</span>
-            </div>
-            <div class="q4-tooltip-row">
-              <span class="q4-tooltip-label">Hospitalisations:</span>
-              <span class="q4-tooltip-value">${formatComma(stats.hospitalisations)} (${formatDecimal(stats.sharePct)}%)</span>
-            </div>
-            <div class="q4-tooltip-row">
-              <span class="q4-tooltip-label">Total Bed Days:</span>
-              <span class="q4-tooltip-value">${formatComma(stats.bedDays)} (${formatDecimal(stats.bedDaySharePct)}%)</span>
-            </div>
-            <div class="q4-tooltip-row">
-              <span class="q4-tooltip-label">Avg. Stay / Case:</span>
-              <span class="q4-tooltip-value">${formatDecimal(stats.avgBedDays)} days</span>
-            </div>
-          `);
+            filter.append("feDropShadow")
+                .attr("dx", "-8")
+                .attr("dy", "10")
+                .attr("stdDeviation", "12")
+                .attr("flood-color", "#000000")
+                .attr("flood-opacity", "0.55");
 
-          tooltip.classed("visible", true);
-          moveTooltip(event);
-        }
+            const mapGroup = svg.append("g").attr("class", "map-layers");
+            const polygonGroup = mapGroup.append("g")
+                .attr("class", "states-layer")
+                .attr("filter", "url(#continent-shadow)");
+            const labelGroup = mapGroup.append("g").attr("class", "labels-layer");
+            const legendGroup = svg.append("g").attr("class", "legend-layer");
 
-        function moveTooltip(event) {
-          const padding = 16;
-          const tooltipNode = tooltip.node();
-          const rect = tooltipNode.getBoundingClientRect();
+            const tooltip = d3.select("#q4-tooltip");
+            const formatComma = d3.format(",");
+            const formatDecimal = d3.format(".2f");
 
-          let left = event.clientX + padding;
-          let top = event.clientY - rect.height / 2;
+            const geoJsonUrl = "https://raw.githubusercontent.com/rowanhogan/australian-states/master/states.geojson";
 
-          if (left + rect.width > window.innerWidth - 12) {
-            left = event.clientX - rect.width - padding;
-          }
-          if (top < 12) top = 12;
-          if (top + rect.height > window.innerHeight - 12) {
-            top = window.innerHeight - rect.height - 12;
-          }
+            Promise.all([
+                d3.json(geoJsonUrl),
+                d3.csv("q4_state_distribution.csv").catch(() => fallbackCsvData)
+            ]).then(([geoData, rawCsv]) => {
+                const csvRows = (rawCsv && rawCsv.length > 0) ? rawCsv : fallbackCsvData;
 
-          tooltip
-            .style("left", `${left}px`)
-            .style("top", `${top}px`);
-        }
+                const parsedData = csvRows.map(d => ({
+                    rawCode: String(d.State).trim(),
+                    normCode: String(d.State).trim().toUpperCase(),
+                    hospitalisations: +d.Hospitalisations,
+                    bedDays: +d.Bed_Days
+                }));
 
-        function hideTooltip() {
-          tooltip.classed("visible", false);
-        }
+                const totalHospitalisations = d3.sum(parsedData, d => d.hospitalisations);
+                const totalBedDays = d3.sum(parsedData, d => d.bedDays);
 
-        function drawColorLegend(container, scale, maxVal) {
-          const legendWidth = 210;
-          const legendHeight = 12;
-          const legendX = 36;
-          const legendY = height - 55;
+                parsedData.sort((a, b) => d3.descending(a.hospitalisations, b.hospitalisations));
+                parsedData.forEach((d, idx) => {
+                    d.rank = idx + 1;
+                    d.sharePct = (d.hospitalisations / totalHospitalisations) * 100;
+                    d.bedDaySharePct = (d.bedDays / totalBedDays) * 100;
+                    d.avgBedDays = d.bedDays / d.hospitalisations;
+                });
 
-          const gradId = "q4-choropleth-gradient";
-          const linearGrad = defs.append("linearGradient")
-            .attr("id", gradId)
-            .attr("x1", "0%")
-            .attr("x2", "100%")
-            .attr("y1", "0%")
-            .attr("y2", "0%");
+                const dataByCode = new Map(parsedData.map(d => [d.normCode, d]));
 
-          d3.range(0, 1.01, 0.1).forEach(t => {
-            linearGrad.append("stop")
-              .attr("offset", `${t * 100}%`)
-              .attr("stop-color", scale(t * maxVal));
-          });
+                const maxHosp = d3.max(parsedData, d => d.hospitalisations);
+                const choroplethScale = d3.scaleSequential()
+                    .domain([0, maxHosp * 1.05])
+                    .interpolator(d3.interpolateYlGnBu);
 
-          const g = container.append("g")
-            .attr("transform", `translate(${legendX}, ${legendY})`);
+                const projection = d3.geoMercator()
+                    .fitExtent([[50, 25], [width - 60, height - 65]], geoData);
 
-          g.append("text")
-            .attr("x", 0)
-            .attr("y", -8)
-            .attr("font-size", "12px")
-            .attr("font-weight", "600")
-            .attr("fill", "#334155")
-            .text("Hospitalisations Volume");
+                const pathGenerator = d3.geoPath().projection(projection);
 
-          g.append("rect")
-            .attr("width", legendWidth)
-            .attr("height", legendHeight)
-            .attr("rx", 4)
-            .style("fill", `url(#${gradId})`)
-            .style("stroke", "#cbd5e1")
-            .style("stroke-width", 1);
+                function getFeatureCode(feature) {
+                    const props = feature.properties || {};
+                    const rawName = (props.STATE_NAME || props.name || props.STE_NAME16 || props.STE_NAME21 || "").trim().toUpperCase();
+                    return nameToCode[rawName] || rawName;
+                }
 
-          const legendScale = d3.scaleLinear()
-            .domain([0, maxVal])
-            .range([0, legendWidth]);
+                const sortedFeatures = [...geoData.features].sort((a, b) => {
+                    const codeA = getFeatureCode(a);
+                    const codeB = getFeatureCode(b);
+                    if (codeA === "ACT") return 1;
+                    if (codeB === "ACT") return -1;
+                    return 0;
+                });
 
-          const legendAxis = d3.axisBottom(legendScale)
-            .tickValues([0, 4000, 8000, maxVal])
-            .tickFormat(d3.format(",.0f"))
-            .tickSize(4);
+                polygonGroup.selectAll("path.state-path")
+                    .data(sortedFeatures)
+                    .join("path")
+                    .attr("class", "state-path")
+                    .attr("id", d => `state-${getFeatureCode(d)}`)
+                    .attr("d", pathGenerator)
+                    .attr("fill", d => {
+                        const code = getFeatureCode(d);
+                        const stateRecord = dataByCode.get(code);
+                        if (code === "ACT") return "#e11d48";
+                        return stateRecord ? choroplethScale(stateRecord.hospitalisations) : "#475569";
+                    })
+                    .on("mouseover", function (event, d) {
+                        d3.select(this).classed("active-hover", true);
+                        showTooltip(event, d);
+                    })
+                    .on("mousemove", function (event) {
+                        moveTooltip(event);
+                    })
+                    .on("mouseout", function () {
+                        d3.select(this).classed("active-hover", false);
+                        hideTooltip();
+                    });
 
-          g.append("g")
-            .attr("transform", `translate(0, ${legendHeight})`)
-            .call(legendAxis)
-            .select(".domain")
-            .remove();
-        }
-      });
-    })();
-  </script>
+                sortedFeatures.forEach(feature => {
+                    const code = getFeatureCode(feature);
+                    const meta = stateMeta[code];
+                    if (!meta) return;
+
+                    const centroid = pathGenerator.centroid(feature);
+                    if (isNaN(centroid[0]) || isNaN(centroid[1])) return;
+
+                    const [dx, dy] = meta.labelOffset;
+                    const labelX = centroid[0] + dx;
+                    const labelY = centroid[1] + dy;
+
+                    if (code === "ACT") {
+                        const actText = labelGroup.append("text")
+                            .attr("class", "state-label act-label")
+                            .attr("x", labelX)
+                            .attr("y", labelY - 14);
+
+                        ["Australian", "Capital", "Territory"].forEach((word, i) => {
+                            actText.append("tspan")
+                                .attr("x", labelX)
+                                .attr("dy", i === 0 ? 0 : "1.1em")
+                                .text(word);
+                        });
+                    } else {
+                        labelGroup.append("text")
+                            .attr("class", "state-label")
+                            .attr("x", labelX)
+                            .attr("y", labelY)
+                            .text(meta.fullName);
+                    }
+                });
+
+                drawColorLegend(legendGroup, choroplethScale, maxHosp);
+
+                function showTooltip(event, feature) {
+                    const code = getFeatureCode(feature);
+                    const meta = stateMeta[code] || { fullName: code, code: code };
+                    const stats = dataByCode.get(code);
+
+                    if (!stats) return;
+
+                    tooltip.html(`
+                        <div class="q4-tooltip-header">
+                            <span>${meta.fullName} (${meta.code})</span>
+                            <span class="q4-tooltip-badge">Rank #${stats.rank}</span>
+                        </div>
+                        <div class="q4-tooltip-row">
+                            <span class="q4-tooltip-label">Hospitalisations:</span>
+                            <span class="q4-tooltip-value">${formatComma(stats.hospitalisations)} (${formatDecimal(stats.sharePct)}%)</span>
+                        </div>
+                        <div class="q4-tooltip-row">
+                            <span class="q4-tooltip-label">Total Bed Days:</span>
+                            <span class="q4-tooltip-value">${formatComma(stats.bedDays)} (${formatDecimal(stats.bedDaySharePct)}%)</span>
+                        </div>
+                        <div class="q4-tooltip-row">
+                            <span class="q4-tooltip-label">Average Stay:</span>
+                            <span class="q4-tooltip-value">${formatDecimal(stats.avgBedDays)} days</span>
+                        </div>
+                    `);
+
+                    tooltip.classed("visible", true);
+                    moveTooltip(event);
+                }
+
+                function moveTooltip(event) {
+                    const padding = 16;
+                    const tooltipNode = tooltip.node();
+                    const rect = tooltipNode.getBoundingClientRect();
+
+                    let left = event.clientX + padding;
+                    let top = event.clientY - rect.height / 2;
+
+                    if (left + rect.width > window.innerWidth - 12) {
+                        left = event.clientX - rect.width - padding;
+                    }
+                    if (top < 12) top = 12;
+                    if (top + rect.height > window.innerHeight - 12) {
+                        top = window.innerHeight - rect.height - 12;
+                    }
+
+                    tooltip
+                        .style("left", `${left}px`)
+                        .style("top", `${top}px`);
+                }
+
+                function hideTooltip() {
+                    tooltip.classed("visible", false);
+                }
+
+                function drawColorLegend(container, scale, maxVal) {
+                    const legendWidth = 220;
+                    const legendHeight = 12;
+                    const legendX = 36;
+                    const legendY = height - 55;
+
+                    const gradId = "q4-choropleth-gradient";
+                    const linearGrad = defs.append("linearGradient")
+                        .attr("id", gradId)
+                        .attr("x1", "0%")
+                        .attr("x2", "100%")
+                        .attr("y1", "0%")
+                        .attr("y2", "0%");
+
+                    d3.range(0, 1.01, 0.1).forEach(t => {
+                        linearGrad.append("stop")
+                            .attr("offset", `${t * 100}%`)
+                            .attr("stop-color", scale(t * maxVal));
+                    });
+
+                    const g = container.append("g")
+                        .attr("transform", `translate(${legendX}, ${legendY})`);
+
+                    g.append("text")
+                        .attr("x", 0)
+                        .attr("y", -8)
+                        .attr("font-size", "12px")
+                        .attr("font-weight", "600")
+                        .attr("fill", "#e2e8f0")
+                        .text("Hospitalisations Volume");
+
+                    g.append("rect")
+                        .attr("width", legendWidth)
+                        .attr("height", legendHeight)
+                        .attr("rx", 4)
+                        .style("fill", `url(#${gradId})`)
+                        .style("stroke", "#475569")
+                        .style("stroke-width", 1);
+
+                    const legendScale = d3.scaleLinear()
+                        .domain([0, maxVal])
+                        .range([0, legendWidth]);
+
+                    const legendAxis = d3.axisBottom(legendScale)
+                        .tickValues([0, 4000, 8000, maxVal])
+                        .tickFormat(d3.format(",.0f"))
+                        .tickSize(4);
+
+                    g.append("g")
+                        .attr("class", "legend-axis")
+                        .attr("transform", `translate(0, ${legendHeight})`)
+                        .call(legendAxis)
+                        .select(".domain")
+                        .remove();
+                }
+            });
+        })();
+    </script>
 </body>
 </html>
