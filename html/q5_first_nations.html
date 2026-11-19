@@ -469,6 +469,12 @@
                 </div>
                 <div class="controls-group">
                     <button class="ctrl-btn active" id="btn-toggle-values">Cell Values: ON</button>
+                    <button class="ctrl-btn active" id="btn-filter-all">All Data</button>
+                    <button class="ctrl-btn" id="btn-filter-severe">Severe (> 7 Days)</button>
+
+                    <button class="ctrl-btn" id="btn-reset" title="Reset Chart" style="padding: 7px 10px; display: flex; align-items: center;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                    </button>
                 </div>
             </div>
 
@@ -613,19 +619,43 @@
 
                 let showValues = true;
                 const midPoint = minVal + (maxVal - minVal) * 0.52;
+                
+                let currentFilter = 'all';
+
+                function applyFilter() {
+                    if (currentFilter === 'all') {
+                        cells.style("opacity", 1);
+                        cellLabels.style("opacity", showValues ? 1 : 0);
+                    } else if (currentFilter === 'severe') {
+                        cells.style("opacity", d => (d.Avg_Bed_Days !== null && d.Avg_Bed_Days > 7) ? 1 : 0.15);
+                        cellLabels.style("opacity", d => (d.Avg_Bed_Days !== null && d.Avg_Bed_Days > 7 && showValues) ? 1 : 0);
+                    }
+                }
 
                 function setHeatmapHover(hoveredData) {
                     cells
                         .classed("hovered", d => hoveredData && d.Year === hoveredData.Year && d.Age_Group === hoveredData.Age_Group)
-                        .style("opacity", d => (!hoveredData || (d.Year === hoveredData.Year && d.Age_Group === hoveredData.Age_Group)) ? 1 : 0.3);
+                        .style("opacity", d => {
+                            if (currentFilter === 'severe') {
+                                const isSevere = d.Avg_Bed_Days !== null && d.Avg_Bed_Days > 7;
+                                if (!hoveredData) return isSevere ? 1 : 0.15;
+                                return (d.Year === hoveredData.Year && d.Age_Group === hoveredData.Age_Group) ? 1 : (isSevere ? 0.3 : 0.05);
+                            } else {
+                                return (!hoveredData || (d.Year === hoveredData.Year && d.Age_Group === hoveredData.Age_Group)) ? 1 : 0.3;
+                            }
+                        });
 
                     cellLabels
                         .style("opacity", d => {
                             if (!showValues) return 0;
+                            if (currentFilter === 'severe' && (d.Avg_Bed_Days === null || d.Avg_Bed_Days <= 7)) return 0;
+                            
                             if (!hoveredData) return 1;
                             return (d.Year === hoveredData.Year && d.Age_Group === hoveredData.Age_Group) ? 1 : 0.35;
                         })
                         .style("font-size", d => (hoveredData && d.Year === hoveredData.Year && d.Age_Group === hoveredData.Age_Group) ? "12px" : "10.5px");
+
+                    xAxisG.selectAll(".tick text")
 
                     xAxisG.selectAll(".tick text")
                         .style("fill", yr => (!hoveredData) ? "#cbd5e1" : (yr === hoveredData.Year ? "#38bdf8" : "#64748b"))
@@ -699,7 +729,35 @@
                     d3.select(this)
                         .classed("active", showValues)
                         .text(showValues ? "Cell Values: ON" : "Cell Values: OFF");
-                    cellLabels.style("opacity", showValues ? 1 : 0);
+                    applyFilter(); 
+                });
+
+                d3.select("#btn-filter-all").on("click", function () {
+                    currentFilter = 'all';
+                    d3.select("#btn-filter-all").classed("active", true);
+                    d3.select("#btn-filter-severe").classed("active", false);
+                    applyFilter();
+                });
+
+                d3.select("#btn-filter-severe").on("click", function () {
+                    currentFilter = 'severe';
+                    d3.select("#btn-filter-all").classed("active", false);
+                    d3.select("#btn-filter-severe").classed("active", true);
+                    applyFilter();
+                });
+
+                d3.select("#btn-reset").on("click", function () {
+                    currentFilter = 'all';
+                    showValues = true;
+                    
+                    d3.select("#btn-filter-all").classed("active", true);
+                    d3.select("#btn-filter-severe").classed("active", false);
+                    d3.select("#btn-toggle-values").classed("active", true).text("Cell Values: ON");
+                    
+                    setHeatmapHover(null); 
+                    
+                    applyFilter();
+                    d3.select("#tooltip").style("opacity", 0);
                 });
 
                 const legendWidth = 18;
