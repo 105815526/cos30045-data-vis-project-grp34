@@ -35,7 +35,7 @@
             flex-direction: column;
         }
 
-        /* Responsive Top Navigation Bar (Adapts to Any Browser Width) */
+        /* Responsive Top Navigation Bar */
         .navbar {
             display: flex;
             justify-content: space-between;
@@ -345,7 +345,7 @@
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45);
             z-index: 9999;
             opacity: 0;
-            transition: opacity 0.15s ease;
+            transition: opacity 0.12s ease;
             min-width: 230px;
         }
 
@@ -442,7 +442,7 @@
             </div>
         </div>
 
-        <div class="page-indicator">National Trends & Road Users</div>
+        <div class="page-indicator">National Trends &amp; Road Users</div>
     </nav>
 
     <main class="container">
@@ -450,7 +450,7 @@
         <header class="page-header">
             <h1>National Trends, Road User Changes &amp; Hospital Bed Strain (2011–2021)</h1>
             <p>
-                Follow ten years of non-fatal road injury hospital admissions across Australia. Use the buttons below to view reporting changes in <strong>Victoria (2012)</strong> and <strong>NSW (2017)</strong>, switch between actual case numbers and percentage changes, and hover over any road user group to compare their total admissions and hospital bed days.
+                Follow ten years of non-fatal road injury hospital admissions across Australia. Use the buttons below to view reporting changes in <strong>Victoria (2012)</strong> and <strong>NSW (2017)</strong>, switch between actual case numbers and percentage changes, and hover over any bar to inspect exact numbers.
             </p>
         </header>
 
@@ -561,27 +561,6 @@
             if (x + rect.width > window.innerWidth - 12) x = event.clientX - rect.width - pad;
             if (y + rect.height > window.innerHeight - 12) y = event.clientY - rect.height - pad;
             tooltip.style("left", x + "px").style("top", y + "px");
-        }
-
-        // Cross-Chart Road User Highlighting (Links Q2 and Q3)
-        function highlightRoadUser(userName, active) {
-            if (!userName) return;
-            d3.selectAll(".road-user-row")
-                .transition().duration(150)
-                .style("opacity", function(d) {
-                    if (!active) return 1;
-                    return d.user === userName ? 1 : 0.25;
-                });
-
-            d3.selectAll(".road-user-label")
-                .style("font-weight", function(d) {
-                    if (!active) return "500";
-                    return d.user === userName ? "800" : "400";
-                })
-                .style("fill", function(d) {
-                    if (!active) return "#cbd5e1";
-                    return d.user === userName ? "#38bdf8" : "#64748b";
-                });
         }
 
         // =========================================================================
@@ -827,7 +806,7 @@
         });
 
         // =========================================================================
-        // Q2: DIVERGING BAR CHART (q2_road_user_change.csv)
+        // Q2: DIVERGING BAR CHART (q2_road_user_change.csv) - ISOLATED HOVER
         // =========================================================================
         d3.csv("q2_road_user_change.csv").then(raw => {
             const cols = raw.columns || Object.keys(raw[0] || {});
@@ -875,7 +854,28 @@
             const barsGroup = svg.append("g");
             const labelsGroup = svg.append("g");
 
+            function setQ2Hover(activeUser) {
+                barsGroup.selectAll(".q2-bar")
+                    .interrupt()
+                    .style("opacity", d => (!activeUser || d.user === activeUser) ? 1 : 0.28);
+
+                labelsGroup.selectAll(".q2-label")
+                    .interrupt()
+                    .style("opacity", d => (!activeUser || d.user === activeUser) ? 1 : 0.35);
+
+                yAxis.selectAll(".tick text")
+                    .style("font-weight", userStr => (activeUser && userStr === activeUser) ? "800" : "500")
+                    .style("fill", userStr => (!activeUser) ? "#cbd5e1" : (userStr === activeUser ? "#38bdf8" : "#64748b"));
+            }
+
+            // Reset to default whenever cursor leaves the Q2 chart area
+            d3.select("#q2-chart").on("mouseleave", () => {
+                setQ2Hover(null);
+                tooltip.style("opacity", 0);
+            });
+
             function updateQ2() {
+                setQ2Hover(null);
                 const metric = d => mode === "abs" ? d.netChange : d.pctShift;
 
                 if (sortByVal) {
@@ -891,18 +891,15 @@
                 x.domain([Math.min(0, minVal - pad), Math.max(0, maxVal + pad)]);
                 y.domain(data.map(d => d.user));
 
-                xGrid.transition().duration(500)
+                xGrid.transition().duration(450)
                     .call(d3.axisBottom(x).ticks(6).tickSize(-height).tickFormat(""));
 
-                xAxis.transition().duration(500)
+                xAxis.transition().duration(450)
                     .call(d3.axisBottom(x).ticks(6).tickFormat(d => mode === "abs" ? fmtInt(d) : `${d}%`));
 
-                yAxis.transition().duration(500).call(d3.axisLeft(y));
-                yAxis.selectAll(".tick text")
-                    .attr("class", "road-user-label")
-                    .datum(function(userStr) { return { user: userStr }; });
+                yAxis.transition().duration(450).call(d3.axisLeft(y));
 
-                zeroLine.transition().duration(500)
+                zeroLine.transition().duration(450)
                     .attr("x1", x(0)).attr("x2", x(0));
 
                 const bars = barsGroup.selectAll(".q2-bar")
@@ -910,7 +907,7 @@
 
                 bars.enter()
                     .append("rect")
-                    .attr("class", "q2-bar road-user-row")
+                    .attr("class", "q2-bar")
                     .attr("y", d => y(d.user))
                     .attr("height", y.bandwidth())
                     .attr("x", x(0))
@@ -918,7 +915,7 @@
                     .attr("rx", 3)
                     .style("cursor", "pointer")
                     .on("mouseenter", function(event, d) {
-                        highlightRoadUser(d.user, true);
+                        setQ2Hover(d.user);
                         tooltip.style("opacity", 1).html(`
                             <div class="tt-title">${d.user}</div>
                             <div class="tt-row"><span>2011 Cases:</span><span class="tt-val">${fmtInt(d.y2011)}</span></div>
@@ -930,16 +927,17 @@
                     })
                     .on("mousemove", moveTooltip)
                     .on("mouseleave", function() {
-                        highlightRoadUser(null, false);
+                        setQ2Hover(null);
                         tooltip.style("opacity", 0);
                     })
                     .merge(bars)
-                    .transition().duration(500)
+                    .transition().duration(450)
                     .attr("y", d => y(d.user))
                     .attr("height", y.bandwidth())
                     .attr("x", d => Math.min(x(0), x(metric(d))))
                     .attr("width", d => Math.max(2, Math.abs(x(metric(d)) - x(0))))
-                    .attr("fill", d => metric(d) >= 0 ? "#3b82f6" : "#f97316");
+                    .attr("fill", d => metric(d) >= 0 ? "#3b82f6" : "#f97316")
+                    .style("opacity", 1);
 
                 bars.exit().remove();
 
@@ -948,16 +946,18 @@
 
                 labels.enter()
                     .append("text")
-                    .attr("class", "q2-label road-user-row")
+                    .attr("class", "q2-label")
                     .attr("font-size", "11px")
                     .attr("font-weight", "600")
                     .attr("fill", "#e2e8f0")
+                    .style("pointer-events", "none")
                     .merge(labels)
-                    .transition().duration(500)
+                    .transition().duration(450)
                     .attr("y", d => y(d.user) + y.bandwidth() / 2 + 4)
                     .attr("x", d => metric(d) >= 0 ? x(metric(d)) + 6 : x(metric(d)) - 6)
                     .attr("text-anchor", d => metric(d) >= 0 ? "start" : "end")
-                    .text(d => mode === "abs" ? fmtSignedInt(d.netChange) : `${fmtSignedPct(d.pctShift)}%`);
+                    .text(d => mode === "abs" ? fmtSignedInt(d.netChange) : `${fmtSignedPct(d.pctShift)}%`)
+                    .style("opacity", 1);
 
                 labels.exit().remove();
             }
@@ -986,7 +986,7 @@
         });
 
         // =========================================================================
-        // Q3: BUTTERFLY CHART (q3_healthcare_burden.csv)
+        // Q3: BUTTERFLY CHART (q3_healthcare_burden.csv) - ISOLATED BAR HOVER
         // =========================================================================
         d3.csv("q3_healthcare_burden.csv").then(raw => {
             let data = raw.filter(d => d["Road user"] && d["Road user"].trim() !== "").map(d => ({
@@ -1077,7 +1077,40 @@
 
             const rowsGroup = svg.append("g");
 
+            function setQ3Hover(activeUser) {
+                rowsGroup.selectAll(".butterfly-row")
+                    .interrupt()
+                    .style("opacity", d => (!activeUser || d.user === activeUser) ? 1 : 0.28);
+
+                rowsGroup.selectAll(".q3-user-label")
+                    .style("font-weight", d => (activeUser && d.user === activeUser) ? "800" : "500")
+                    .style("fill", d => !activeUser ? "#cbd5e1" : (d.user === activeUser ? "#38bdf8" : "#64748b"));
+            }
+
+            // Reset to default whenever cursor leaves the Q3 chart area
+            d3.select("#q3-chart").on("mouseleave", () => {
+                setQ3Hover(null);
+                tooltip.style("opacity", 0);
+            });
+
+            function showQ3Tooltip(event, d) {
+                setQ3Hover(d.user);
+                tooltip.style("opacity", 1).html(`
+                    <div class="tt-title">${d.user} (2011–2021 Total)</div>
+                    <div class="tt-row"><span>Total Hospitalisations:</span><span class="tt-val" style="color:#22d3ee">${fmtInt(d.cases)} cases</span></div>
+                    <div class="tt-row"><span>Total Bed Days:</span><span class="tt-val" style="color:#c4b5fd">${fmtInt(d.beds)} days</span></div>
+                    <div class="tt-row"><span>Average Stay:</span><span class="tt-val">${fmtDec(d.avgStay)} days</span></div>
+                `);
+                moveTooltip(event);
+            }
+
+            function hideQ3Tooltip() {
+                setQ3Hover(null);
+                tooltip.style("opacity", 0);
+            }
+
             function updateQ3() {
+                setQ3Hover(null);
                 if (sortMode === "cases") data.sort((a, b) => d3.descending(a.cases, b.cases));
                 if (sortMode === "beds") data.sort((a, b) => d3.descending(a.beds, b.beds));
                 if (sortMode === "avg") data.sort((a, b) => d3.descending(a.avgStay, b.avgStay));
@@ -1089,32 +1122,21 @@
 
                 const rowsEnter = rows.enter()
                     .append("g")
-                    .attr("class", "butterfly-row road-user-row")
-                    .attr("transform", d => `translate(0,${y(d.user)})`)
-                    .style("cursor", "pointer")
-                    .on("mouseenter", function(event, d) {
-                        highlightRoadUser(d.user, true);
-                        tooltip.style("opacity", 1).html(`
-                            <div class="tt-title">${d.user} (2011–2021 Total)</div>
-                            <div class="tt-row"><span>Total Hospitalisations:</span><span class="tt-val" style="color:#22d3ee">${fmtInt(d.cases)} cases</span></div>
-                            <div class="tt-row"><span>Total Bed Days:</span><span class="tt-val" style="color:#c4b5fd">${fmtInt(d.beds)} days</span></div>
-                            <div class="tt-row"><span>Average Stay:</span><span class="tt-val">${fmtDec(d.avgStay)} days</span></div>
-                        `);
-                        moveTooltip(event);
-                    })
-                    .on("mousemove", moveTooltip)
-                    .on("mouseleave", function() {
-                        highlightRoadUser(null, false);
-                        tooltip.style("opacity", 0);
-                    });
+                    .attr("class", "butterfly-row")
+                    .attr("transform", d => `translate(0,${y(d.user)})`);
 
+                // Hover triggers ONLY on the Left Bar and Right Bar (not empty gap)
                 rowsEnter.append("rect")
                     .attr("class", "bar-left")
                     .attr("x", leftWingEnd)
                     .attr("width", 0)
                     .attr("height", y.bandwidth())
                     .attr("fill", "#06b6d4")
-                    .attr("rx", 3);
+                    .attr("rx", 3)
+                    .style("cursor", "pointer")
+                    .on("mouseenter", showQ3Tooltip)
+                    .on("mousemove", moveTooltip)
+                    .on("mouseleave", hideQ3Tooltip);
 
                 rowsEnter.append("rect")
                     .attr("class", "bar-right")
@@ -1122,15 +1144,20 @@
                     .attr("width", 0)
                     .attr("height", y.bandwidth())
                     .attr("fill", "#8b5cf6")
-                    .attr("rx", 3);
+                    .attr("rx", 3)
+                    .style("cursor", "pointer")
+                    .on("mouseenter", showQ3Tooltip)
+                    .on("mousemove", moveTooltip)
+                    .on("mouseleave", hideQ3Tooltip);
 
                 rowsEnter.append("text")
-                    .attr("class", "road-user-label")
+                    .attr("class", "q3-user-label")
                     .attr("x", wingW + centerGap / 2)
                     .attr("y", y.bandwidth() / 2 + 4)
                     .attr("text-anchor", "middle")
                     .attr("fill", "#cbd5e1")
                     .attr("font-size", "10.5px")
+                    .style("pointer-events", "none")
                     .text(d => d.user.length > 22 ? d.user.slice(0, 20) + "…" : d.user);
 
                 rowsEnter.append("text")
@@ -1139,7 +1166,8 @@
                     .attr("text-anchor", "end")
                     .attr("fill", "#bae6fd")
                     .attr("font-size", "10px")
-                    .attr("font-weight", "600");
+                    .attr("font-weight", "600")
+                    .style("pointer-events", "none");
 
                 rowsEnter.append("text")
                     .attr("class", "val-right")
@@ -1147,28 +1175,30 @@
                     .attr("text-anchor", "start")
                     .attr("fill", "#ddd6fe")
                     .attr("font-size", "10px")
-                    .attr("font-weight", "600");
+                    .attr("font-weight", "600")
+                    .style("pointer-events", "none");
 
-                const rowsUpdate = rowsEnter.merge(rows);
+                const rowsUpdate = rowsEnter.merge(rows)
+                    .style("opacity", 1);
 
-                rowsUpdate.transition().duration(500)
+                rowsUpdate.transition().duration(450)
                     .attr("transform", d => `translate(0,${y(d.user)})`);
 
-                rowsUpdate.select(".bar-left").transition().duration(500)
+                rowsUpdate.select(".bar-left").transition().duration(450)
                     .attr("x", d => xLeft(d.cases))
                     .attr("width", d => Math.max(2, leftWingEnd - xLeft(d.cases)))
                     .attr("height", y.bandwidth());
 
-                rowsUpdate.select(".bar-right").transition().duration(500)
+                rowsUpdate.select(".bar-right").transition().duration(450)
                     .attr("x", rightWingStart)
                     .attr("width", d => Math.max(2, xRight(d.beds) - rightWingStart))
                     .attr("height", y.bandwidth());
 
-                rowsUpdate.select(".val-left").transition().duration(500)
+                rowsUpdate.select(".val-left").transition().duration(450)
                     .attr("x", d => xLeft(d.cases) - 5)
                     .text(d => d3.format(".2s")(d.cases));
 
-                rowsUpdate.select(".val-right").transition().duration(500)
+                rowsUpdate.select(".val-right").transition().duration(450)
                     .attr("x", d => xRight(d.beds) + 5)
                     .text(d => d3.format(".2s")(d.beds));
             }

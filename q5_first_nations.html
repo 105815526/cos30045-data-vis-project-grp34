@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>First Nations Clinical Severity | Road Crash Hospitalisations</title>
+    <!-- Load D3.js v7 -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        :root {
+            --bg-dark: #12161f;
+            --bg-card: #1b2230;
+            --bg-panel: #151b26;
+            --accent-blue: #3b82f6;
+            --accent-cyan: #06b6d4;
+            --accent-purple: #8b5cf6;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #2e3a4f;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Responsive Top Navigation Bar */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px 20px;
+            background-color: rgba(27, 34, 48, 0.96);
+            backdrop-filter: blur(10px);
+            padding: 14px clamp(16px, 4vw, 40px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 200;
+        }
+
+        .nav-left {
+            position: relative;
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .menu-toggle {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            cursor: pointer;
+            padding: 4px 10px 4px 4px;
+            border-radius: 10px;
+            transition: background 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .menu-toggle:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .menu-icon {
+            background: var(--accent-blue);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+            transition: background 0.2s ease;
+        }
+
+        .menu-toggle:hover .menu-icon {
+            background: #2563eb;
+        }
+
+        .brand-title {
+            font-size: clamp(1.05rem, 2vw, 1.2rem);
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            color: var(--text-main);
+        }
+
+        .page-indicator {
+            font-size: clamp(0.8rem, 1.4vw, 0.95rem);
+            font-weight: 700;
+            color: var(--accent-cyan);
+            letter-spacing: 0.7px;
+            text-transform: uppercase;
+            background: rgba(6, 182, 212, 0.1);
+            border: 1px solid rgba(6, 182, 212, 0.28);
+            padding: 6px 14px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
+        /* Left-Top Dropdown Navigation Menu */
+        .dropdown-menu {
+            position: absolute;
+            top: calc(100% + 12px);
+            left: 0;
+            width: min(320px, calc(100vw - 32px));
+            background-color: #1b2230;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55);
+            padding: 10px;
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+            z-index: 300;
+        }
+
+        .dropdown-menu.open {
+            display: flex;
+        }
+
+        .dropdown-header {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            padding: 8px 12px 4px;
+            font-weight: 700;
+        }
+
+        .dropdown-link {
+            display: flex;
+            flex-direction: column;
+            text-decoration: none;
+            padding: 10px 14px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .dropdown-link:hover {
+            background-color: rgba(59, 130, 246, 0.12);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .dropdown-link.active {
+            background-color: rgba(59, 130, 246, 0.2);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+
+        .dropdown-link-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 2px;
+        }
+
+        .dropdown-link-sub {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Main Container */
+        .container {
+            width: 100%;
+            max-width: 1420px;
+            margin: 0 auto;
+            padding: clamp(20px, 3vw, 32px) clamp(16px, 3vw, 32px);
+            flex: 1;
+        }
+
+        /* Page Intro Header */
+        .page-header {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: clamp(22px, 3vw, 30px) clamp(20px, 3vw, 32px);
+            margin-bottom: 28px;
+        }
+
+        .page-header h1 {
+            font-size: clamp(1.45rem, 2.8vw, 1.85rem);
+            margin-bottom: 10px;
+            color: var(--text-main);
+            line-height: 1.3;
+        }
+
+        .page-header p {
+            color: var(--text-muted);
+            line-height: 1.65;
+            font-size: 1rem;
+            max-width: 1100px;
+        }
+
+        /* Chart Card Container */
+        .chart-card {
+            background-color: var(--bg-card);
+            border-radius: 14px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+            padding: clamp(18px, 3vw, 28px);
+            border: 1px solid var(--border-color);
+            margin-bottom: 28px;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 18px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .q-badge {
+            display: inline-block;
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+            font-size: 0.78rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        .chart-title {
+            font-size: clamp(1.1rem, 2vw, 1.3rem);
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 4px;
+        }
+
+        .chart-subtitle {
+            font-size: 0.92rem;
+            color: var(--text-muted);
+        }
+
+        /* Controls */
+        .controls-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .ctrl-btn {
+            background-color: var(--bg-panel);
+            color: var(--text-muted);
+            border: 1px solid var(--border-color);
+            padding: 7px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .ctrl-btn:hover {
+            color: var(--text-main);
+            border-color: var(--accent-blue);
+        }
+
+        .ctrl-btn.active {
+            background-color: var(--accent-blue);
+            color: #ffffff;
+            border-color: var(--accent-blue);
+        }
+
+        .svg-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: auto;
+        }
+
+        svg#q5-heatmap {
+            width: 100%;
+            height: auto;
+            max-width: 1040px;
+            overflow: visible;
+        }
+
+        /* Error / Status Notice */
+        .status-box {
+            display: none;
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.45);
+            color: #fca5a5;
+            padding: 18px 22px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            max-width: 720px;
+        }
+
+        /* Heatmap Axes & Cell Styling */
+        .x-axis text,
+        .y-axis text,
+        .legend-label {
+            font-size: 12px;
+            fill: #cbd5e1;
+            font-weight: 500;
+            transition: fill 0.15s ease, font-weight 0.15s ease;
+        }
+
+        .x-axis path,
+        .y-axis path,
+        .x-axis line,
+        .y-axis line {
+            stroke: #334155;
+        }
+
+        .axis-label {
+            font-size: 13px;
+            font-weight: 700;
+            fill: #94a3b8;
+        }
+
+        .cell {
+            transition: opacity 0.15s ease, filter 0.15s ease;
+            cursor: pointer;
+            stroke: #1b2230;
+            stroke-width: 1.5px;
+        }
+
+        .cell.hovered {
+            stroke: #ffffff;
+            stroke-width: 3px;
+            filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.85)) brightness(1.08);
+        }
+
+        .cell-val-text {
+            font-size: 10.5px;
+            font-weight: 700;
+            pointer-events: none;
+            text-anchor: middle;
+            transition: opacity 0.15s ease;
+        }
+
+        /* Floating Tooltip */
+        .q5-tooltip {
+            position: fixed;
+            pointer-events: none;
+            background: rgba(15, 23, 42, 0.96);
+            color: #f8fafc;
+            padding: 14px 16px;
+            border-radius: 10px;
+            font-size: 0.88rem;
+            line-height: 1.55;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45);
+            border: 1px solid #475569;
+            opacity: 0;
+            transition: opacity 0.12s ease;
+            z-index: 9999;
+            min-width: 225px;
+        }
+
+        .tt-title {
+            font-weight: 700;
+            font-size: 0.96rem;
+            color: #38bdf8;
+            margin-bottom: 6px;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 4px;
+        }
+
+        .tt-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .tt-val {
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        /* Legend Bar */
+        .legend-bar {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 14px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-swatch {
+            width: 14px;
+            height: 14px;
+            border-radius: 4px;
+            border: 1px solid #475569;
+        }
+
+        footer {
+            text-align: center;
+            padding: 24px 16px;
+            margin-top: 20px;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            background-color: #0e121a;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Responsive Top Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <button class="menu-toggle" id="menuBtn" aria-label="Toggle Navigation Menu">
+                <span class="menu-icon">☰</span>
+                <span class="brand-title">RoadCrashViz</span>
+            </button>
+
+            <div class="dropdown-menu" id="dropdownMenu">
+                <div class="dropdown-header">Choose a Section</div>
+                <a href="index.html" class="dropdown-link">
+                    <span class="dropdown-link-title">Dashboard Overview</span>
+                    <span class="dropdown-link-sub">Project background, goals &amp; team</span>
+                </a>
+                <a href="Q1_2_3.html" class="dropdown-link">
+                    <span class="dropdown-link-title">National Trends &amp; Road Users</span>
+                    <span class="dropdown-link-sub">Q1 yearly trends, Q2 road user changes &amp; Q3 bed days</span>
+                </a>
+                <a href="q4_australia_map.html" class="dropdown-link">
+                    <span class="dropdown-link-title">State &amp; Territory Distribution</span>
+                    <span class="dropdown-link-sub">Q4 state-by-state map across Australia</span>
+                </a>
+                <a href="q5_first_nations.html" class="dropdown-link active">
+                    <span class="dropdown-link-title">First Nations Clinical Severity</span>
+                    <span class="dropdown-link-sub">Q5 hospital stay lengths for First Nations patients</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="page-indicator">First Nations Clinical Severity</div>
+    </nav>
+
+    <main class="container">
+        <!-- Page Intro Header -->
+        <header class="page-header">
+            <h1>Hospital Stay Lengths for First Nations Road Crash Patients (2011–2021)</h1>
+            <p>
+                Visualise how long First Nations road crash patients stay in the hospital across different age groups and years. Darker red tiles show longer average hospital stays, while grey tiles mark years where data was not provided. Hover over any tile to see the exact numbers.
+            </p>
+        </header>
+
+        <!-- Q5 Heatmap Card -->
+        <section class="chart-card">
+            <div class="chart-header">
+                <div>
+                    <span class="q-badge">Question 5 • Hospital Stay Severity</span>
+                    <h2 class="chart-title">Average Hospital Stay (Days) by Year and Age Group</h2>
+                    <p class="chart-subtitle">Hover over any cell to check the year, age group, and average days spent in the hospital</p>
+                </div>
+                <div class="controls-group">
+                    <button class="ctrl-btn active" id="btn-toggle-values">Cell Values: ON</button>
+                </div>
+            </div>
+
+            <div class="svg-container">
+                <div id="q5-status" class="status-box"></div>
+                <svg id="q5-heatmap"></svg>
+            </div>
+
+            <div class="legend-bar">
+                <div class="legend-item"><span class="legend-swatch" style="background:#ffffcc;"></span> Shorter Average Stay</div>
+                <div class="legend-item"><span class="legend-swatch" style="background:#bd0026;"></span> Longer Average Stay (Higher Severity)</div>
+                <div class="legend-item"><span class="legend-swatch" style="background:#334155;"></span> Data Not Provided</div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Floating Tooltip -->
+    <div id="tooltip" class="q5-tooltip"></div>
+
+    <footer>
+        COS30045 Data Visualisation Project • Group 34 (Dylan Ting Shu Han, Stanley Sia Ming Qian, Lee Kok Kiong) • Data Source: BITRE (2023)
+    </footer>
+
+    <script>
+        // Top-Left Navigation Dropdown Toggle
+        const menuBtn = document.getElementById("menuBtn");
+        const dropdownMenu = document.getElementById("dropdownMenu");
+
+        menuBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            dropdownMenu.classList.toggle("open");
+        });
+
+        document.addEventListener("click", (e) => {
+            if (!dropdownMenu.contains(e.target) && !menuBtn.contains(e.target)) {
+                dropdownMenu.classList.remove("open");
+            }
+        });
+
+        // Q5 Heatmap with Spotlight Hover Effect
+        (function () {
+            const statusBox = document.getElementById("q5-status");
+            const tooltip = d3.select("#tooltip");
+
+            function moveTooltip(event) {
+                const pad = 16;
+                let x = event.clientX + pad;
+                let y = event.clientY + pad;
+                const rect = tooltip.node().getBoundingClientRect();
+                if (x + rect.width > window.innerWidth - 12) x = event.clientX - rect.width - pad;
+                if (y + rect.height > window.innerHeight - 12) y = event.clientY - rect.height - pad;
+                tooltip.style("left", x + "px").style("top", y + "px");
+            }
+
+            const candidatePaths = [
+                "data/q5_first_nations_stay.csv",
+                "q5_first_nations_stay.csv",
+            ];
+
+            async function loadFirstWorkingCsv(paths) {
+                for (const path of paths) {
+                    try {
+                        const rows = await d3.csv(encodeURI(path));
+                        if (rows && rows.length > 0) return rows;
+                    } catch (err) {
+                        // Try next candidate path
+                    }
+                }
+                throw new Error("Could not find Q5 CSV file in data/ or root folder.");
+            }
+
+            loadFirstWorkingCsv(candidatePaths).then(function (rawData) {
+                const data = rawData.map(row => {
+                    const cleanRow = {};
+                    Object.keys(row).forEach(k => {
+                        const cleanKey = k.replace(/^\uFEFF/, "").trim().toLowerCase();
+                        cleanRow[cleanKey] = row[k];
+                    });
+
+                    const yearVal = +(cleanRow["year"] ?? cleanRow["calendar year"] ?? cleanRow["calendar_year"]);
+                    const ageVal = String(cleanRow["age_group"] ?? cleanRow["age group"] ?? cleanRow["age"] ?? "").trim();
+                    const rawStay = cleanRow["avg_bed_days"] ?? cleanRow["avg bed days"] ?? cleanRow["avg_stay"] ?? "";
+                    const stayNum = (rawStay === "" || rawStay == null) ? null : +rawStay;
+
+                    return {
+                        Year: yearVal,
+                        Age_Group: ageVal,
+                        Avg_Bed_Days: isNaN(stayNum) ? null : stayNum
+                    };
+                }).filter(d => !isNaN(d.Year) && d.Age_Group !== "");
+
+                if (data.length === 0) {
+                    statusBox.style.display = "block";
+                    statusBox.innerHTML = "<strong>CSV Loaded, but columns didn't match:</strong> Check that the CSV has <code>Year</code>, <code>Age_Group</code>, and <code>Avg_Bed_Days</code> columns.";
+                    return;
+                }
+
+                const width = 920;
+                const height = 460;
+                const margin = { top: 35, right: 125, bottom: 60, left: 95 };
+                const innerWidth = width - margin.left - margin.right;
+                const innerHeight = height - margin.top - margin.bottom;
+
+                const svg = d3.select("#q5-heatmap")
+                    .attr("width", width)
+                    .attr("height", height)
+                    .attr("viewBox", `0 0 ${width} ${height}`)
+                    .attr("preserveAspectRatio", "xMidYMid meet");
+
+                svg.selectAll("*").remove();
+
+                const g = svg.append("g")
+                    .attr("transform", `translate(${margin.left},${margin.top})`);
+
+                const rawAgeGroups = Array.from(new Set(data.map(d => d.Age_Group)));
+                const ageGroups = rawAgeGroups.sort((a, b) => {
+                    const numA = parseInt(a, 10);
+                    const numB = parseInt(b, 10);
+                    if (isNaN(numA) && isNaN(numB)) return a.localeCompare(b);
+                    if (isNaN(numA)) return 1;
+                    if (isNaN(numB)) return -1;
+                    return numA - numB;
+                });
+
+                const years = Array.from(new Set(data.map(d => d.Year))).sort((a, b) => a - b);
+
+                const xScale = d3.scaleBand()
+                    .domain(years)
+                    .range([0, innerWidth])
+                    .padding(0.06);
+
+                const yScale = d3.scaleBand()
+                    .domain(ageGroups)
+                    .range([0, innerHeight])
+                    .padding(0.06);
+
+                const validVals = data.map(d => d.Avg_Bed_Days).filter(v => v !== null);
+                const minVal = d3.min(validVals) ?? 0;
+                const maxVal = d3.max(validVals) ?? 10;
+
+                const colorScale = d3.scaleSequential()
+                    .domain([minVal, maxVal])
+                    .interpolator(d3.interpolateYlOrRd);
+
+                // X Axis
+                const xAxisG = g.append("g")
+                    .attr("class", "x-axis")
+                    .attr("transform", `translate(0, ${innerHeight})`)
+                    .call(d3.axisBottom(xScale).tickFormat(d3.format("d")));
+
+                g.append("text")
+                    .attr("class", "axis-label x-label")
+                    .attr("x", innerWidth / 2)
+                    .attr("y", innerHeight + 44)
+                    .attr("text-anchor", "middle")
+                    .text("Calendar Year");
+
+                // Y Axis
+                const yAxisG = g.append("g")
+                    .attr("class", "y-axis")
+                    .call(d3.axisLeft(yScale));
+
+                g.append("text")
+                    .attr("class", "axis-label y-label")
+                    .attr("transform", "rotate(-90)")
+                    .attr("x", -innerHeight / 2)
+                    .attr("y", -68)
+                    .attr("text-anchor", "middle")
+                    .text("Age Group");
+
+                let showValues = true;
+                const midPoint = minVal + (maxVal - minVal) * 0.52;
+
+                // Helper to apply/reset visual hover state cleanly
+                function setHeatmapHover(hoveredData) {
+                    cells
+                        .classed("hovered", d => hoveredData && d.Year === hoveredData.Year && d.Age_Group === hoveredData.Age_Group)
+                        .style("opacity", d => (!hoveredData || (d.Year === hoveredData.Year && d.Age_Group === hoveredData.Age_Group)) ? 1 : 0.3);
+
+                    cellLabels
+                        .style("opacity", d => {
+                            if (!showValues) return 0;
+                            if (!hoveredData) return 1;
+                            return (d.Year === hoveredData.Year && d.Age_Group === hoveredData.Age_Group) ? 1 : 0.35;
+                        })
+                        .style("font-size", d => (hoveredData && d.Year === hoveredData.Year && d.Age_Group === hoveredData.Age_Group) ? "12px" : "10.5px");
+
+                    xAxisG.selectAll(".tick text")
+                        .style("fill", yr => (!hoveredData) ? "#cbd5e1" : (yr === hoveredData.Year ? "#38bdf8" : "#64748b"))
+                        .style("font-weight", yr => (hoveredData && yr === hoveredData.Year) ? "800" : "500");
+
+                    yAxisG.selectAll(".tick text")
+                        .style("fill", ag => (!hoveredData) ? "#cbd5e1" : (ag === hoveredData.Age_Group ? "#38bdf8" : "#64748b"))
+                        .style("font-weight", ag => (hoveredData && ag === hoveredData.Age_Group) ? "800" : "500");
+                }
+
+                // Ensure hover resets completely when cursor leaves the heatmap SVG
+                svg.on("mouseleave", function () {
+                    setHeatmapHover(null);
+                    tooltip.style("opacity", 0);
+                });
+
+                // Heatmap Cells
+                const cells = g.selectAll(".cell")
+                    .data(data)
+                    .enter()
+                    .append("rect")
+                    .attr("class", "cell")
+                    .attr("x", d => xScale(d.Year))
+                    .attr("y", d => yScale(d.Age_Group))
+                    .attr("width", xScale.bandwidth())
+                    .attr("height", yScale.bandwidth())
+                    .attr("fill", d => d.Avg_Bed_Days === null ? "#334155" : colorScale(d.Avg_Bed_Days))
+                    .attr("rx", 4)
+                    .attr("ry", 4)
+                    .on("mouseenter", function (event, d) {
+                        // Bring hovered tile and its label above neighboring borders
+                        d3.select(this).raise();
+                        cellLabels.filter(lbl => lbl.Year === d.Year && lbl.Age_Group === d.Age_Group).raise();
+
+                        setHeatmapHover(d);
+
+                        // Match tooltip value color dynamically to the hovered cell color (brightened slightly if very dark red)
+                        let cellColor = "#94a3b8";
+                        if (d.Avg_Bed_Days !== null) {
+                            const c = d3.hsl(colorScale(d.Avg_Bed_Days));
+                            if (c.l < 0.52) c.l = 0.56;
+                            cellColor = c.formatHex();
+                        }
+
+                        const stayText = d.Avg_Bed_Days === null
+                            ? `<span style="color:#94a3b8; font-weight:700;">Data Not Provided</span>`
+                            : `<span class="tt-val" style="color:${cellColor};">${d.Avg_Bed_Days.toFixed(2)} days</span>`;
+
+                        tooltip.style("opacity", 1).html(`
+                            <div class="tt-title">Year ${d.Year} • ${d.Age_Group}</div>
+                            <div class="tt-row"><span>Age Group:</span><span class="tt-val">${d.Age_Group}</span></div>
+                            <div class="tt-row"><span>Average Stay:</span>${stayText}</div>
+                        `);
+                        moveTooltip(event);
+                    })
+                    .on("mousemove", moveTooltip)
+                    .on("mouseleave", function () {
+                        setHeatmapHover(null);
+                        tooltip.style("opacity", 0);
+                    });
+
+                // Value Labels inside cells
+                const cellLabels = g.selectAll(".cell-val-text")
+                    .data(data)
+                    .enter()
+                    .append("text")
+                    .attr("class", "cell-val-text")
+                    .attr("x", d => xScale(d.Year) + xScale.bandwidth() / 2)
+                    .attr("y", d => yScale(d.Age_Group) + yScale.bandwidth() / 2 + 4)
+                    .attr("fill", d => {
+                        if (d.Avg_Bed_Days === null) return "#94a3b8";
+                        return d.Avg_Bed_Days > midPoint ? "#ffffff" : "#1e293b";
+                    })
+                    .text(d => d.Avg_Bed_Days === null ? "N/A" : d.Avg_Bed_Days.toFixed(1));
+
+                d3.select("#btn-toggle-values").on("click", function () {
+                    showValues = !showValues;
+                    d3.select(this)
+                        .classed("active", showValues)
+                        .text(showValues ? "Cell Values: ON" : "Cell Values: OFF");
+                    cellLabels.style("opacity", showValues ? 1 : 0);
+                });
+
+                // Color Scale Legend
+                const legendWidth = 18;
+                const legendHeight = 210;
+                const legendX = innerWidth + 32;
+                const legendY = (innerHeight - legendHeight) / 2 + 10;
+
+                const defs = svg.append("defs");
+                const linearGradient = defs.append("linearGradient")
+                    .attr("id", "q5-linear-gradient")
+                    .attr("x1", "0%").attr("y1", "100%")
+                    .attr("x2", "0%").attr("y2", "0%");
+
+                d3.range(0, 1.05, 0.1).forEach(t => {
+                    linearGradient.append("stop")
+                        .attr("offset", `${t * 100}%`)
+                        .attr("stop-color", colorScale(minVal + t * (maxVal - minVal)));
+                });
+
+                g.append("text")
+                    .attr("class", "axis-label")
+                    .attr("x", legendX)
+                    .attr("y", legendY - 12)
+                    .attr("text-anchor", "start")
+                    .text("Avg Stay (Days)");
+
+                g.append("rect")
+                    .attr("x", legendX)
+                    .attr("y", legendY)
+                    .attr("width", legendWidth)
+                    .attr("height", legendHeight)
+                    .attr("rx", 4)
+                    .style("fill", "url(#q5-linear-gradient)")
+                    .style("stroke", "#475569")
+                    .style("stroke-width", 1);
+
+                g.append("text")
+                    .attr("class", "legend-label")
+                    .attr("x", legendX + legendWidth + 8)
+                    .attr("y", legendY + 10)
+                    .text(`${maxVal.toFixed(2)} d`);
+
+                g.append("text")
+                    .attr("class", "legend-label")
+                    .attr("x", legendX + legendWidth + 8)
+                    .attr("y", legendY + legendHeight)
+                    .text(`${minVal.toFixed(2)} d`);
+
+            }).catch(function (error) {
+                statusBox.style.display = "block";
+                statusBox.innerHTML = `<strong>CSV File Not Found Locally:</strong> Open <strong>GitHub Desktop</strong> and click <strong>Pull origin</strong> so <code>data/q5_first_nations_stay.csv</code> downloads into your project folder, then refresh this page.`;
+                console.error(error);
+            });
+        })();
+    </script>
+</body>
+</html>

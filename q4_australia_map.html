@@ -34,7 +34,7 @@
             flex-direction: column;
         }
 
-        /* Responsive Top Navigation Bar (Matches index.html & Q1_2_3.html) */
+        /* Responsive Top Navigation Bar */
         .navbar {
             display: flex;
             justify-content: space-between;
@@ -209,7 +209,7 @@
             max-width: 1100px;
         }
 
-        /* Chart Card Container (Unified Dark Theme) */
+        /* Chart Card Container */
         .chart-card {
             position: relative;
             background-color: var(--bg-card);
@@ -226,7 +226,7 @@
             align-items: flex-start;
             flex-wrap: wrap;
             gap: 16px;
-            margin-bottom: 18px;
+            margin-bottom: 12px;
             padding-bottom: 14px;
             border-bottom: 1px solid var(--border-color);
         }
@@ -266,11 +266,12 @@
         svg#australia-map {
             width: 100%;
             height: auto;
-            max-height: 660px;
+            display: block;
+            margin: 0 auto;
             overflow: visible;
         }
 
-        /* State polygon styling for dark mode */
+        /* State polygon styling */
         .state-path {
             stroke: #0f172a;
             stroke-width: 1.2px;
@@ -288,27 +289,27 @@
         /* State text labels directly on the map */
         .state-label {
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            font-size: 13.5px;
+            font-size: 15px;
             font-weight: 700;
             fill: #f8fafc;
             text-anchor: middle;
             pointer-events: none;
             paint-order: stroke;
-            stroke: rgba(15, 23, 42, 0.9);
-            stroke-width: 3.5px;
+            stroke: rgba(15, 23, 42, 0.92);
+            stroke-width: 4px;
             stroke-linecap: round;
             stroke-linejoin: round;
         }
 
         .state-label.act-label {
-            font-size: 10px;
+            font-size: 11px;
             font-weight: 700;
         }
 
         /* Legend Axis Styling */
         .legend-axis text {
             fill: #cbd5e1;
-            font-size: 11px;
+            font-size: 12px;
         }
 
         .legend-axis line {
@@ -429,7 +430,7 @@
         <header class="page-header">
             <h1>Hospitalisations &amp; Bed Days by State and Territory</h1>
             <p>
-                See how non-fatal road crash hospitalisations and hospital bed days are spread across Australian states and territories. Hover over any state or territory on the map to check exact case numbers, national share, state ranking, and average days spent in the hospital.
+                Visualise how non-fatal road crash hospitalisations and hospital bed days are spread across Australian states and territories. Hover over any state or territory on the map to check exact case numbers, national share, state ranking, and average days spent in the hospital.
             </p>
         </header>
 
@@ -471,20 +472,20 @@
             }
         });
 
-        // Q4 Map Implementation
+        // Q4 Map Implementation (Centered Landmass Projection)
         (function () {
-            const width = 880;
-            const height = 650;
+            const width = 1120;
+            const height = 740;
 
             const stateMeta = {
                 "WA":  { fullName: "Western Australia",            code: "WA",  color: "#5c9ce6", labelOffset: [0, 0] },
                 "NT":  { fullName: "Northern Territory",           code: "NT",  color: "#69c2b0", labelOffset: [0, -10] },
-                "QLD": { fullName: "Queensland",                   code: "Qld", color: "#8c82c9", labelOffset: [0, 10] },
-                "SA":  { fullName: "South Australia",              code: "SA",  color: "#d4b9ad", labelOffset: [0, -15] },
-                "NSW": { fullName: "New South Wales",              code: "NSW", color: "#7bc665", labelOffset: [-10, -5] },
-                "VIC": { fullName: "Victoria",                     code: "Vic", color: "#58b581", labelOffset: [-8, 12] },
-                "TAS": { fullName: "Tasmania",                     code: "Tas", color: "#e6a8d7", labelOffset: [0, 48] },
-                "ACT": { fullName: "Australian Capital Territory", code: "ACT", color: "#e11d48", labelOffset: [-22, -26] }
+                "QLD": { fullName: "Queensland",                   code: "Qld", color: "#8c82c9", labelOffset: [0, 12] },
+                "SA":  { fullName: "South Australia",              code: "SA",  color: "#d4b9ad", labelOffset: [0, -16] },
+                "NSW": { fullName: "New South Wales",              code: "NSW", color: "#7bc665", labelOffset: [-12, -6] },
+                "VIC": { fullName: "Victoria",                     code: "Vic", color: "#58b581", labelOffset: [-10, 14] },
+                "TAS": { fullName: "Tasmania",                     code: "Tas", color: "#e6a8d7", labelOffset: [0, 54] },
+                "ACT": { fullName: "Australian Capital Territory", code: "ACT", color: "#e11d48", labelOffset: [-24, -28] }
             };
 
             const nameToCode = {};
@@ -537,6 +538,32 @@
 
             const geoJsonUrl = "https://raw.githubusercontent.com/rowanhogan/australian-states/master/states.geojson";
 
+            // Extract the primary landmass ring of each state so distant offshore islands do not skew centering
+            function getMainLandmassGeo(geoData) {
+                const mainFeatures = geoData.features.map(f => {
+                    const geom = f.geometry;
+                    if (!geom) return f;
+                    if (geom.type === "MultiPolygon") {
+                        let largestPoly = geom.coordinates[0];
+                        let maxPoints = 0;
+                        geom.coordinates.forEach(poly => {
+                            const count = poly[0] ? poly[0].length : 0;
+                            if (count > maxPoints) {
+                                maxPoints = count;
+                                largestPoly = poly;
+                            }
+                        });
+                        return {
+                            type: "Feature",
+                            properties: f.properties,
+                            geometry: { type: "Polygon", coordinates: largestPoly }
+                        };
+                    }
+                    return f;
+                });
+                return { type: "FeatureCollection", features: mainFeatures };
+            }
+
             Promise.all([
                 d3.json(geoJsonUrl),
                 d3.csv("q4_state_distribution.csv").catch(() => fallbackCsvData)
@@ -568,8 +595,10 @@
                     .domain([0, maxHosp * 1.05])
                     .interpolator(d3.interpolateYlGnBu);
 
+                // Fit projection using the primary landmass so Australia is dead-center inside the card
+                const mainLandGeo = getMainLandmassGeo(geoData);
                 const projection = d3.geoMercator()
-                    .fitExtent([[50, 25], [width - 60, height - 65]], geoData);
+                    .fitExtent([[110, 20], [width - 110, height - 35]], mainLandGeo);
 
                 const pathGenerator = d3.geoPath().projection(projection);
 
@@ -702,10 +731,10 @@
                 }
 
                 function drawColorLegend(container, scale, maxVal) {
-                    const legendWidth = 220;
-                    const legendHeight = 12;
-                    const legendX = 36;
-                    const legendY = height - 55;
+                    const legendWidth = 250;
+                    const legendHeight = 14;
+                    const legendX = 40;
+                    const legendY = height - 48;
 
                     const gradId = "q4-choropleth-gradient";
                     const linearGrad = defs.append("linearGradient")
@@ -726,9 +755,9 @@
 
                     g.append("text")
                         .attr("x", 0)
-                        .attr("y", -8)
-                        .attr("font-size", "12px")
-                        .attr("font-weight", "600")
+                        .attr("y", -10)
+                        .attr("font-size", "13px")
+                        .attr("font-weight", "700")
                         .attr("fill", "#e2e8f0")
                         .text("Hospitalisations Volume");
 
