@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Page 1 (Q1–Q3) | Road Crash Hospitalisations</title>
+    <title>National Trends & Road Users | Road Crash Hospitalisations</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
         :root {
@@ -31,127 +31,183 @@
             background-color: var(--bg-dark);
             color: var(--text-main);
             min-height: 100vh;
+            display: flex;
+            flex-direction: column;
         }
 
-        /* Top Navigation Bar (Wireframe Desktop - 3) */
+        /* Responsive Top Navigation Bar (Adapts to Any Browser Width) */
         .navbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background-color: rgba(27, 34, 48, 0.95);
+            flex-wrap: wrap;
+            gap: 12px 20px;
+            background-color: rgba(27, 34, 48, 0.96);
             backdrop-filter: blur(10px);
-            padding: 16px 40px;
+            padding: 14px clamp(16px, 4vw, 40px);
             border-bottom: 1px solid var(--border-color);
             position: sticky;
             top: 0;
-            z-index: 100;
+            z-index: 200;
         }
 
         .nav-left {
+            position: relative;
             display: flex;
             align-items: center;
-            gap: 14px;
+            flex-shrink: 0;
         }
 
-        .menu-btn {
-            background: var(--accent-blue);
+        .menu-toggle {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: transparent;
             border: none;
+            color: var(--text-main);
+            cursor: pointer;
+            padding: 4px 10px 4px 4px;
+            border-radius: 10px;
+            transition: background 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .menu-toggle:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .menu-icon {
+            background: var(--accent-blue);
             color: white;
-            width: 38px;
-            height: 38px;
+            width: 36px;
+            height: 36px;
             border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
             font-size: 1.2rem;
-            text-decoration: none;
+            font-weight: bold;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+            transition: background 0.2s ease;
+        }
+
+        .menu-toggle:hover .menu-icon {
+            background: #2563eb;
         }
 
         .brand-title {
-            font-size: 1.2rem;
+            font-size: clamp(1.05rem, 2vw, 1.2rem);
             font-weight: 700;
+            letter-spacing: 0.3px;
             color: var(--text-main);
-            text-decoration: none;
         }
 
         .page-indicator {
-            font-size: 1.1rem;
+            font-size: clamp(0.8rem, 1.4vw, 0.95rem);
             font-weight: 700;
             color: var(--accent-cyan);
-            letter-spacing: 0.5px;
+            letter-spacing: 0.7px;
             text-transform: uppercase;
+            background: rgba(6, 182, 212, 0.1);
+            border: 1px solid rgba(6, 182, 212, 0.28);
+            padding: 6px 14px;
+            border-radius: 999px;
+            white-space: nowrap;
         }
 
-        .nav-links {
-            list-style: none;
+        /* Left-Top Dropdown Navigation Menu */
+        .dropdown-menu {
+            position: absolute;
+            top: calc(100% + 12px);
+            left: 0;
+            width: min(320px, calc(100vw - 32px));
+            background-color: #1b2230;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55);
+            padding: 10px;
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+            z-index: 300;
+        }
+
+        .dropdown-menu.open {
             display: flex;
-            gap: 12px;
         }
 
-        .nav-links a {
-            text-decoration: none;
+        .dropdown-header {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
             color: var(--text-muted);
-            font-weight: 600;
-            font-size: 0.95rem;
-            padding: 8px 16px;
-            border-radius: 6px;
-            transition: all 0.2s ease;
+            padding: 8px 12px 4px;
+            font-weight: 700;
         }
 
-        .nav-links a:hover,
-        .nav-links a.active {
+        .dropdown-link {
+            display: flex;
+            flex-direction: column;
+            text-decoration: none;
+            padding: 10px 14px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .dropdown-link:hover {
+            background-color: rgba(59, 130, 246, 0.12);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .dropdown-link.active {
+            background-color: rgba(59, 130, 246, 0.2);
+            border-color: rgba(59, 130, 246, 0.5);
+        }
+
+        .dropdown-link-title {
+            font-size: 0.95rem;
+            font-weight: 700;
             color: var(--text-main);
-            background-color: rgba(59, 130, 246, 0.18);
-            border: 1px solid rgba(59, 130, 246, 0.4);
+            margin-bottom: 2px;
+        }
+
+        .dropdown-link-sub {
+            font-size: 0.8rem;
+            color: var(--text-muted);
         }
 
         /* Main Container */
         .container {
-            max-width: 1400px;
+            width: 100%;
+            max-width: 1420px;
             margin: 0 auto;
-            padding: 32px;
+            padding: clamp(20px, 3vw, 32px) clamp(16px, 3vw, 32px);
+            flex: 1;
         }
 
-        /* Page Intro Header */
+        /* Page Intro Header (Clean Full-Width Narrative) */
         .page-header {
             background-color: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: 14px;
-            padding: 28px 32px;
+            padding: clamp(22px, 3vw, 30px) clamp(20px, 3vw, 32px);
             margin-bottom: 28px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-
-        .page-header-text {
-            max-width: 900px;
         }
 
         .page-header h1 {
-            font-size: 1.85rem;
+            font-size: clamp(1.45rem, 2.8vw, 1.85rem);
             margin-bottom: 10px;
             color: var(--text-main);
+            line-height: 1.3;
         }
 
         .page-header p {
             color: var(--text-muted);
-            line-height: 1.6;
+            line-height: 1.65;
             font-size: 1rem;
-        }
-
-        .interaction-hint {
-            background: rgba(59, 130, 246, 0.12);
-            border: 1px solid rgba(59, 130, 246, 0.35);
-            color: #93c5fd;
-            padding: 12px 18px;
-            border-radius: 10px;
-            font-size: 0.88rem;
-            line-height: 1.5;
-            max-width: 360px;
+            max-width: 1100px;
         }
 
         /* Chart Card Styling */
@@ -159,7 +215,7 @@
             background-color: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: 14px;
-            padding: 28px;
+            padding: clamp(18px, 3vw, 28px);
             margin-bottom: 28px;
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
         }
@@ -188,7 +244,7 @@
         }
 
         .chart-title {
-            font-size: 1.3rem;
+            font-size: clamp(1.1rem, 2vw, 1.3rem);
             font-weight: 700;
             color: var(--text-main);
             margin-bottom: 4px;
@@ -230,7 +286,7 @@
             border-color: var(--accent-blue);
         }
 
-        /* Split 2-Column Grid for Q2 & Q3 (Wireframe Desktop - 3) */
+        /* Split 2-Column Grid for Q2 & Q3 */
         .split-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -290,7 +346,7 @@
             z-index: 9999;
             opacity: 0;
             transition: opacity 0.15s ease;
-            min-width: 220px;
+            min-width: 230px;
         }
 
         .tt-title {
@@ -345,42 +401,57 @@
 
         footer {
             text-align: center;
-            padding: 24px;
+            padding: 24px 16px;
             margin-top: 20px;
             border-top: 1px solid var(--border-color);
             color: var(--text-muted);
             font-size: 0.9rem;
+            background-color: #0e121a;
         }
     </style>
 </head>
 <body>
 
-    <!-- Top Navigation Bar -->
+    <!-- Responsive Top Navigation Bar -->
     <nav class="navbar">
         <div class="nav-left">
-            <a href="index.html" class="menu-btn" title="Back to Dashboard">☰</a>
-            <a href="index.html" class="brand-title">RoadCrashViz</a>
+            <button class="menu-toggle" id="menuBtn" aria-label="Toggle Navigation Menu">
+                <span class="menu-icon">☰</span>
+                <span class="brand-title">RoadCrashViz</span>
+            </button>
+
+            <!-- Dropdown Menu for All Project Pages -->
+            <div class="dropdown-menu" id="dropdownMenu">
+                <div class="dropdown-header">Select Visualisation Topic</div>
+                <a href="index.html" class="dropdown-link">
+                    <span class="dropdown-link-title">Dashboard Overview</span>
+                    <span class="dropdown-link-sub">Project Scope, Motivation & Team</span>
+                </a>
+                <a href="Q1_2_3.html" class="dropdown-link active">
+                    <span class="dropdown-link-title">National Trends & Road Users</span>
+                    <span class="dropdown-link-sub">Q1 Trajectory, Q2 Net Shift & Q3 Bed Burden</span>
+                </a>
+                <a href="q4_australia_map.html" class="dropdown-link">
+                    <span class="dropdown-link-title">State & Territory Distribution</span>
+                    <span class="dropdown-link-sub">Q4 Jurisdictional Geographic Map (2021)</span>
+                </a>
+                <a href="q5_first_nations.html" class="dropdown-link">
+                    <span class="dropdown-link-title">First Nations Clinical Severity</span>
+                    <span class="dropdown-link-sub">Q5 Inpatient Stay Duration Distribution</span>
+                </a>
+            </div>
         </div>
-        <div class="page-indicator">Page 1</div>
-        <ul class="nav-links">
-            <li><a href="index.html">Dashboard</a></li>
-            <li><a href="q1_2_3.html" class="active">Page 1 (Q1–Q3)</a></li>
-            <li><a href="q4_australia_map.html">Page 2 (Q4 Map)</a></li>
-        </ul>
+
+        <div class="page-indicator">National Trends & Road Users</div>
     </nav>
 
     <main class="container">
-        <!-- Header matching Desktop - 3 Wireframe -->
+        <!-- Page Intro Header -->
         <header class="page-header">
-            <div class="page-header-text">
-                <h1>Hospitalised Injuries from Road Crashes (2011–2021)</h1>
-                <p>
-                    Tracing a decade of non-fatal traffic injury admissions across Australia. Use the interactive controls to inspect policy reporting discontinuities in <strong>Victoria (2012)</strong> and <strong>NSW (2017)</strong>, toggle between absolute count and relative percentage shifts, and hover over any road user group to cross-highlight their cumulative hospitalisations and inpatient bed days.
-                </p>
-            </div>
-            <div class="interaction-hint">
-                <strong>💡 Linked Interactivity:</strong> Hover over any road user bar in <strong>Q2</strong> or <strong>Q3</strong> to simultaneously highlight that group across both charts and inspect detailed metrics.
-            </div>
+            <h1>National Trends, Road User Shifts & Healthcare Burden (2011–2021)</h1>
+            <p>
+                Tracing a decade of non-fatal traffic injury admissions across Australia. Use the interactive controls to inspect policy reporting discontinuities in <strong>Victoria (2012)</strong> and <strong>NSW (2017)</strong>, toggle between absolute count and relative percentage shifts, and hover over any road user group to inspect cumulative hospitalisations and inpatient bed days.
+            </p>
         </header>
 
         <!-- Q1: FULL WIDTH ANNOTATED TIME-SERIES LINE CHART -->
@@ -456,10 +527,26 @@
     <div id="tooltip" class="d3-tooltip"></div>
 
     <footer>
-        COS30045 Data Visualisation Project • Group 34 • Interactive D3.js Dashboard
+        COS30045 Data Visualisation Project • Group 34 (Dylan Ting Shu Han, Stanley Sia Ming Qian, Lee Kok Kiong) • Data Source: BITRE (2023)
     </footer>
 
     <script>
+        // Top-Left Navigation Dropdown Toggle
+        const menuBtn = document.getElementById("menuBtn");
+        const dropdownMenu = document.getElementById("dropdownMenu");
+
+        menuBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            dropdownMenu.classList.toggle("open");
+        });
+
+        document.addEventListener("click", (e) => {
+            if (!dropdownMenu.contains(e.target) && !menuBtn.contains(e.target)) {
+                dropdownMenu.classList.remove("open");
+            }
+        });
+
+        // Shared Formatting & Tooltip Helpers
         const tooltip = d3.select("#tooltip");
         const fmtInt = d3.format(",.0f");
         const fmtDec = d3.format(",.2f");
@@ -476,7 +563,7 @@
             tooltip.style("left", x + "px").style("top", y + "px");
         }
 
-        // Cross-chart Road User Highlighting (Links Q2 and Q3!)
+        // Cross-Chart Road User Highlighting (Links Q2 and Q3)
         function highlightRoadUser(userName, active) {
             if (!userName) return;
             d3.selectAll(".road-user-row")
@@ -531,7 +618,7 @@
                 .domain([28000, d3.max(data, d => d.cases) + 2500])
                 .range([height, 0]);
 
-            const xAxisGroup = svg.append("g")
+            svg.append("g")
                 .attr("class", "axis")
                 .attr("transform", `translate(0,${height})`)
                 .call(d3.axisBottom(x).ticks(data.length).tickFormat(d3.format("d")));
@@ -544,7 +631,6 @@
                 .attr("class", "axis")
                 .call(d3.axisLeft(y).ticks(6).tickFormat(d => fmtInt(d)));
 
-            // Y-Axis Label
             svg.append("text")
                 .attr("transform", "rotate(-90)")
                 .attr("y", -54)
@@ -586,21 +672,21 @@
                 .attr("stroke-width", 3.5)
                 .attr("d", lineGen);
 
-            // Annotations Group (Victoria 2012, NSW 2017, COVID 2020)
+            // Annotations Layer (Victoria 2012, NSW 2017, COVID 2020)
             const annotGroup = svg.append("g").attr("class", "annotations-layer");
 
             const breaks = [
                 {
                     year: 2012,
                     label: "2012: Victoria Reporting Break",
-                    sub: "VIC hospital admission policy changed (excluded ED-only stays)",
+                    sub: "VIC hospital admission policy changed",
                     color: "#ef4444",
                     yOffset: 16
                 },
                 {
                     year: 2017,
                     label: "2017: NSW Reporting Break",
-                    sub: "NSW methodology transition affected national comparability",
+                    sub: "NSW methodology transition affected series",
                     color: "#ef4444",
                     yOffset: 16
                 },
@@ -609,7 +695,7 @@
                     label: "2020: COVID-19 Lockdowns",
                     sub: "Temporary dip during travel restrictions",
                     color: "#f59e0b",
-                    yOffset: 48
+                    yOffset: 54
                 }
             ];
 
@@ -647,7 +733,7 @@
                         .attr("y", 14)
                         .attr("fill", "#cbd5e1")
                         .attr("font-size", "10px")
-                        .text(b.sub.slice(0, 36) + "...");
+                        .text(b.sub);
                 });
             }
             renderAnnotations();
@@ -660,7 +746,7 @@
                 .attr("y1", 0).attr("y2", height)
                 .style("opacity", 0);
 
-            // Data Circles
+            // Data Points
             const dots = svg.selectAll(".q1-dot")
                 .data(data)
                 .enter()
@@ -678,7 +764,7 @@
                     hoverLine.attr("x1", x(d.year)).attr("x2", x(d.year)).style("opacity", 1);
 
                     let breakNote = "";
-                    if (d.year === 2012) breakNote = `<div class="tt-note">⚠️ <strong>Victoria Break (2012):</strong> Admission criteria changed in Victoria, creating a structural break in national series.</div>`;
+                    if (d.year === 2012) breakNote = `<div class="tt-note">⚠️ <strong>Victoria Break (2012):</strong> Admission criteria changed in Victoria, creating a structural break in the national series.</div>`;
                     if (d.year === 2017) breakNote = `<div class="tt-note">⚠️ <strong>NSW Break (2017):</strong> Reporting transition in New South Wales; avoid direct unadjusted comparison prior to 2017.</div>`;
                     if (d.year === 2020) breakNote = `<div class="tt-note" style="color:#fcd34d;">ℹ️ <strong>2020 Context:</strong> Mobility restrictions coincided with reduced traffic volume.</div>`;
 
@@ -701,7 +787,7 @@
                     tooltip.style("opacity", 0);
                 });
 
-            // Direct Value Labels above key points
+            // Direct Value Labels
             const valueLabels = svg.selectAll(".q1-val-label")
                 .data(data)
                 .enter()
@@ -761,7 +847,7 @@
                 return { user, y2011, y2021, netChange, pctShift };
             });
 
-            let mode = "abs"; // 'abs' or 'pct'
+            let mode = "abs";
             let sortByVal = true;
 
             const margin = { top: 25, right: 65, bottom: 45, left: 175 };
@@ -819,7 +905,6 @@
                 zeroLine.transition().duration(500)
                     .attr("x1", x(0)).attr("x2", x(0));
 
-                // Bind Bars
                 const bars = barsGroup.selectAll(".q2-bar")
                     .data(data, d => d.user);
 
@@ -858,7 +943,6 @@
 
                 bars.exit().remove();
 
-                // Bind Value Labels
                 const labels = labelsGroup.selectAll(".q2-label")
                     .data(data, d => d.user);
 
@@ -880,7 +964,6 @@
 
             updateQ2();
 
-            // Controls for Q2
             d3.select("#btn-q2-abs").on("click", function() {
                 mode = "abs";
                 d3.select("#btn-q2-abs").classed("active", true);
@@ -913,7 +996,7 @@
                 avgStay: +d["Avg_Bed_Days_Per_Case"] || 0
             }));
 
-            let sortMode = "cases"; // 'cases', 'beds', 'avg'
+            let sortMode = "cases";
 
             const margin = { top: 30, right: 55, bottom: 45, left: 55 };
             const totalW = 620;
@@ -921,7 +1004,7 @@
             const width = totalW - margin.left - margin.right;
             const height = totalH - margin.top - margin.bottom;
 
-            const centerGap = 150; // Center corridor for Road User labels
+            const centerGap = 150;
             const wingW = (width - centerGap) / 2;
             const leftWingEnd = wingW;
             const rightWingStart = wingW + centerGap;
@@ -932,7 +1015,7 @@
                 .append("g")
                 .attr("transform", `translate(${margin.left},${margin.top})`);
 
-            // Independent Scales for Left (Cases) & Right (Bed Days)
+            // Independent Scales for Left (Hospitalisations) & Right (Bed Days)
             const xLeft = d3.scaleLinear()
                 .domain([0, d3.max(data, d => d.cases) * 1.15])
                 .range([leftWingEnd, 0]);
@@ -945,7 +1028,6 @@
                 .range([0, height])
                 .padding(0.24);
 
-            // Wing Headers
             svg.append("text")
                 .attr("x", leftWingEnd / 2)
                 .attr("y", -10)
@@ -973,7 +1055,6 @@
                 .attr("font-weight", "700")
                 .text("Sum(Bed Days) →");
 
-            // Bottom Axes
             svg.append("g")
                 .attr("class", "axis")
                 .attr("transform", `translate(0,${height})`)
@@ -984,7 +1065,6 @@
                 .attr("transform", `translate(0,${height})`)
                 .call(d3.axisBottom(xRight).ticks(3).tickFormat(d3.format("~s")));
 
-            // Center Spine Lines
             svg.append("line")
                 .attr("x1", leftWingEnd).attr("x2", leftWingEnd)
                 .attr("y1", 0).attr("y2", height)
@@ -1028,7 +1108,6 @@
                         tooltip.style("opacity", 0);
                     });
 
-                // Left Bar: Hospitalisations
                 rowsEnter.append("rect")
                     .attr("class", "bar-left")
                     .attr("x", leftWingEnd)
@@ -1037,7 +1116,6 @@
                     .attr("fill", "#06b6d4")
                     .attr("rx", 3);
 
-                // Right Bar: Bed Days
                 rowsEnter.append("rect")
                     .attr("class", "bar-right")
                     .attr("x", rightWingStart)
@@ -1046,7 +1124,6 @@
                     .attr("fill", "#8b5cf6")
                     .attr("rx", 3);
 
-                // Center Road User Label
                 rowsEnter.append("text")
                     .attr("class", "road-user-label")
                     .attr("x", wingW + centerGap / 2)
@@ -1056,7 +1133,6 @@
                     .attr("font-size", "10.5px")
                     .text(d => d.user.length > 22 ? d.user.slice(0, 20) + "…" : d.user);
 
-                // Left Value Text
                 rowsEnter.append("text")
                     .attr("class", "val-left")
                     .attr("y", y.bandwidth() / 2 + 4)
@@ -1065,7 +1141,6 @@
                     .attr("font-size", "10px")
                     .attr("font-weight", "600");
 
-                // Right Value Text
                 rowsEnter.append("text")
                     .attr("class", "val-right")
                     .attr("y", y.bandwidth() / 2 + 4)
@@ -1074,7 +1149,6 @@
                     .attr("font-size", "10px")
                     .attr("font-weight", "600");
 
-                // Merge & Transition
                 const rowsUpdate = rowsEnter.merge(rows);
 
                 rowsUpdate.transition().duration(500)
@@ -1101,7 +1175,6 @@
 
             updateQ3();
 
-            // Sorting Buttons for Q3
             d3.select("#btn-q3-cases").on("click", function() {
                 sortMode = "cases";
                 d3.selectAll("#q3-section .ctrl-btn").classed("active", false);
