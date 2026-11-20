@@ -456,7 +456,7 @@
         <header class="page-header">
             <h1>Hospital Stay Lengths for First Nations Road Crash Patients (2011–2021)</h1>
             <p>
-                Visualise how long First Nations road crash patients stay in the hospital across different age groups and years. Darker red tiles show longer average hospital stays, while grey tiles mark years where data was not provided. Hover over any tile to view the exact numbers.
+                Dive into a decade of data on First Nations road injury severity. This interactive heatmap visualises hospital stay durations across six age groups. Watch how the intensity shifts: while younger age groups generally recover faster, the 65+ demographic demonstrates a severe and ongoing burden year after year. Hover for detailed tooltips, toggle cell values, or filter for severe cases requiring extended care.
             </p>
         </header>
 
@@ -696,7 +696,7 @@
                             cellColor = c.formatHex();
                         }
 
-                        const stayText = `<span class="tt-val" style="color:${cellColor};">${d.Avg_Bed_Days.toFixed(2)} days</span>`;
+                        const stayText = `<span class="tt-val" style="color:${cellColor};">${d.Avg_Bed_Days.toFixed(1)} days</span>`;
 
                         tooltip.style("opacity", 1).html(`
                             <div class="tt-title">Year ${d.Year} • ${d.Age_Group}</div>
@@ -798,13 +798,13 @@
                     .attr("class", "legend-label")
                     .attr("x", legendX + legendWidth + 8)
                     .attr("y", legendY + 10)
-                    .text(`${maxVal.toFixed(2)} d`);
+                    .text(`${maxVal.toFixed(1)} d`);
 
                 g.append("text")
                     .attr("class", "legend-label")
                     .attr("x", legendX + legendWidth + 8)
                     .attr("y", legendY + legendHeight)
-                    .text(`${minVal.toFixed(2)} d`);
+                    .text(`${minVal.toFixed(1)} d`);
 
             }).catch(function (error) {
                 statusBox.style.display = "block";
